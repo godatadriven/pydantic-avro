@@ -4,6 +4,16 @@ version = "0.0.1"
 description = "Converting pydantic classes to avro schemas"
 authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
 
+keywords = ["pydantic", "avro"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/godatadriven/pydantic-avro"
+repository = "https://github.com/godatadriven/pydantic-avro"
+include = [
+    "LICENSE",
+]
+
+
 packages = [{ include = "pydantic_avro", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -21,6 +31,9 @@ pytest-cov= "^2.10.1"
 mypy = "^0.910"
 avro = ""
 fastavro = ""
+
+[tool.poetry.scripts]
+pydantic-avro = "pydantic_avro.__main__:root_main"
 
 [tool.black]
 line-length = 120

@@ -1,4 +1,5 @@
-from typing import Union
+import json
+from typing import Optional, Union
 
 
 def avsc_to_pydatic(schema: dict) -> str:
@@ -38,6 +39,8 @@ def avsc_to_pydatic(schema: dict) -> str:
             py_type = get_python_type(c[0])
         elif t.get("logicalType") == "uuid":
             py_type = "UUID"
+        elif t.get("logicalType") == "decimal":
+            py_type = "Decimal"
         elif t.get("logicalType") == "timestamp-millis" or t.get("logicalType") == "timestamp-micros":
             py_type = "datetime"
         elif t.get("logicalType") == "time-millis" or t.get("logicalType") == "time-micros":
@@ -79,8 +82,10 @@ def avsc_to_pydatic(schema: dict) -> str:
     record_type_to_pydantic(schema)
 
     file_content = """
-from datetime import datetime, time, date
-from typing import Optional, List
+from datetime import date, datetime, time
+from decimal import Decimal
+from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -89,3 +94,14 @@ from pydantic import BaseModel
     file_content += "\n\n".join(classes.values())
 
     return file_content
+
+
+def convert_file(avsc_path: str, output_path: Optional[str] = None):
+    with open(avsc_path, "r") as fh:
+        avsc_dict = json.load(fh)
+    file_content = avsc_to_pydatic(avsc_dict)
+    if output_path is None:
+        print(file_content)
+    else:
+        with open(output_path, "w") as fh:
+            fh.write(file_content)
