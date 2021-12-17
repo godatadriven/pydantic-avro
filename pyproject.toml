@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "pydantic-avro"
+version = "0.0.1"
+description = "Converting pydantic classes to avro schemas"
+authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
+
+packages = [{ include = "pydantic_avro", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.6.1,<4.0"
+pydantic = ">=1.0.0"
+
+[tool.poetry.dev-dependencies]
+coverage= {version=  "^6.1.1", extras=["toml"]}
+pytest= "6.1.0"
+pytest-mock="3.3.1"
+pyproject-flake8 ="^"
+isort ="^5.10.0"
+black="20.8b1"
+pytest-cov= "^2.10.1"
+mypy = "^0.910"
+avro = ""
+fastavro = ""
+
+[tool.black]
+line-length = 120
+target-version = ["py38"]
+
+[tool.pytest.ini_options]
+addopts = "--junitxml=junit/report.xml"
+testpaths = ["tests"]
+markers = "requires_database: requires postgresql"
+
+[tool.coverage.report]
+omit = ["tests/*", ".venv/*"]
+precision = 2
+show_missing = true
+
+[tool.coverage.run]
+command_line = "-m pytest -v tests/"
+omit = ["tests/*",".venv/*"]
+
+[tool.flake8]
+max-line-length = 180
+extend-exclude = ["deploy", ".venv"]
+extend-ignore = "E203"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.mypy]
+files = "src/"
+python_version = "3.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
