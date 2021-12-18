@@ -28,11 +28,30 @@ print(json.dumps(schema_dict))
 
 ### Avro schema to pydantic
 
-```bash
-#!/usr/bin/env bash
+```shell
 # Print to stdout
 pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc
 
 # Save it to a file
 pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc --output /path/to/output.py
+```
+
+
+### Install for developers
+
+###### Install package
+
+- Requirement: Poetry 1.*
+
+```shell
+poetry install
+```
+
+###### Run unit tests
+```shell
+pytest
+coverage run -m pytest  # with coverage
+# or (depends on your local env) 
+poetry run pytest
+poetry run coverage run -m pytest  # with coverage
 ```
