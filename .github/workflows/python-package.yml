@@ -29,8 +29,18 @@ jobs:
           poetry install
       - name: Test with pytest
         run: |
-          poetry run pytest tests
-
+          poetry run coverage run -m pytest
+          poetry run coverage report
+          poetry run coverage xml
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v2
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: 'junit/report.xml'
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./coverage.xml
   lint:
     runs-on: ubuntu-latest
     steps:
