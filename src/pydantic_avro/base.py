@@ -16,6 +16,8 @@ class AvroBase(BaseModel):
     def _avro_schema(schema: dict) -> dict:
         """Return the avro schema for the given pydantic schema"""
 
+        classes_seen = set()
+
         def get_definition(ref: str, schema: dict, prefix: str):
             """Reading definition of base schema for nested structs"""
             id = ref.replace("#/definitions/", "")
@@ -34,13 +36,18 @@ class AvroBase(BaseModel):
             avro_type_dict = {}
             if r is not None:
                 prefix += key
-                avro_type_dict["type"] = {
-                    "type": "record",
-                    "fields": get_definition(r, schema, prefix),
-                    # Name of the struct should be unique true the complete schema
-                    # Because of this the path in the schema is tracked and used as name for a nested struct/array
-                    "name": prefix + "_" + r.replace("#/definitions/", ""),
-                }
+                class_name = r.replace("#/definitions/", "")
+                if class_name in classes_seen:
+                    avro_type_dict["type"] = class_name
+                else:
+                    avro_type_dict["type"] = {
+                        "type": "record",
+                        "fields": get_definition(r, schema, prefix),
+                        # Name of the struct should be unique true the complete schema
+                        # Because of this the path in the schema is tracked and used as name for a nested struct/array
+                        "name": class_name,
+                    }
+                    classes_seen.add(class_name)
             elif t == "array":
                 items = value.get("items")
                 tn = get_type(key, items, prefix)
@@ -48,7 +55,11 @@ class AvroBase(BaseModel):
                 if "$ref" in items:
                     tn = tn["type"]
                 # If items in array are a logicalType
-                if isinstance(tn.get("type", {}), dict) and tn.get("type", {}).get("logicalType") is not None:
+                if (
+                    isinstance(tn, dict)
+                    and isinstance(tn.get("type", {}), dict)
+                    and tn.get("type", {}).get("logicalType") is not None
+                ):
                     tn = tn["type"]
                 avro_type_dict["type"] = {"type": "array", "items": tn}
             elif t == "string" and f == "date-time":
