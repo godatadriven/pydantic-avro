@@ -29,8 +29,8 @@ isort ="^5.10.0"
 black="20.8b1"
 pytest-cov= "^2.10.1"
 mypy = "^0.910"
-avro = ""
-fastavro = ""
+avro = "^1.11.0"
+fastavro = "^1.4.0"
 
 [tool.poetry.scripts]
 pydantic-avro = "pydantic_avro.__main__:root_main"

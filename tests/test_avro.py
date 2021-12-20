@@ -41,6 +41,16 @@ class ComplexTestModel(AvroBase):
     c4: List[datetime]
 
 
+class ReusedObject(AvroBase):
+    c1: Nested2Model
+    c2: Nested2Model
+
+
+class ReusedObjectArray(AvroBase):
+    c1: List[Nested2Model]
+    c2: Nested2Model
+
+
 def test_avro():
     result = TestModel.avro_schema()
     assert result == {
@@ -88,6 +98,45 @@ def test_avro_write():
     assert records == result_records
 
 
+def test_reused_object():
+    result = ReusedObject.avro_schema()
+    assert result == {
+        "type": "record",
+        "name": "ReusedObject",
+        "namespace": "ReusedObject",
+        "fields": [
+            {
+                "name": "c1",
+                "type": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+            },
+            {"name": "c2", "type": "Nested2Model"},
+        ],
+    }
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 2
+
+
+def test_reused_object_array():
+    result = ReusedObjectArray.avro_schema()
+    assert result == {
+        "type": "record",
+        "name": "ReusedObjectArray",
+        "namespace": "ReusedObjectArray",
+        "fields": [
+            {
+                "name": "c1",
+                "type": {
+                    "items": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+                    "type": "array",
+                },
+            },
+            {"name": "c2", "type": "Nested2Model"},
+        ],
+    }
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 2
+
+
 def test_complex_avro():
     result = ComplexTestModel.avro_schema()
     assert result == {
@@ -104,32 +153,19 @@ def test_complex_avro():
                             "name": "c11",
                             "type": {
                                 "fields": [{"name": "c111", "type": "string"}],
-                                "name": "c2_c11_Nested2Model",
+                                "name": "Nested2Model",
                                 "type": "record",
                             },
                         }
                     ],
-                    "name": "c2_NestedModel",
+                    "name": "NestedModel",
                     "type": "record",
                 },
             },
             {
                 "name": "c3",
                 "type": {
-                    "items": {
-                        "fields": [
-                            {
-                                "name": "c11",
-                                "type": {
-                                    "fields": [{"name": "c111", "type": "string"}],
-                                    "name": "c3_c11_Nested2Model",
-                                    "type": "record",
-                                },
-                            }
-                        ],
-                        "name": "c3_NestedModel",
-                        "type": "record",
-                    },
+                    "items": "NestedModel",
                     "type": "array",
                 },
             },
