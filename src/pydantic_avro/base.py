@@ -18,31 +18,29 @@ class AvroBase(BaseModel):
 
         classes_seen = set()
 
-        def get_definition(ref: str, schema: dict, prefix: str):
+        def get_definition(ref: str, schema: dict):
             """Reading definition of base schema for nested structs"""
             id = ref.replace("#/definitions/", "")
             d = schema.get("definitions", {}).get(id)
             if d is None:
                 raise RuntimeError(f"Definition {id} does not exist")
-            return get_fields(d, prefix)
+            return get_fields(d)
 
-        def get_type(key: str, value: dict, prefix: str) -> dict:
+        def get_type(value: dict) -> dict:
             """Returns a type of a single field"""
-            if len(prefix) > 0:
-                prefix += "_"
             t = value.get("type")
             f = value.get("format")
             r = value.get("$ref")
+            a = value.get("additionalProperties")
             avro_type_dict = {}
             if r is not None:
-                prefix += key
                 class_name = r.replace("#/definitions/", "")
                 if class_name in classes_seen:
                     avro_type_dict["type"] = class_name
                 else:
                     avro_type_dict["type"] = {
                         "type": "record",
-                        "fields": get_definition(r, schema, prefix),
+                        "fields": get_definition(r, schema),
                         # Name of the struct should be unique true the complete schema
                         # Because of this the path in the schema is tracked and used as name for a nested struct/array
                         "name": class_name,
@@ -50,7 +48,7 @@ class AvroBase(BaseModel):
                     classes_seen.add(class_name)
             elif t == "array":
                 items = value.get("items")
-                tn = get_type(key, items, prefix)
+                tn = get_type(items)
                 # If items in array are a object:
                 if "$ref" in items:
                     tn = tn["type"]
@@ -91,17 +89,19 @@ class AvroBase(BaseModel):
                 avro_type_dict["type"] = "long"
             elif t == "boolean":
                 avro_type_dict["type"] = "boolean"
+            elif t == "object":
+                avro_type_dict["type"] = {"type": "map", "values": get_type(a), "default": {}}
             else:
                 raise RuntimeError(f"Unknown type found: '{t}'")
             return avro_type_dict
 
-        def get_fields(s: dict, prefix: str = "") -> List[dict]:
+        def get_fields(s: dict) -> List[dict]:
             """Return a list of fields of a struct"""
             fields = []
 
             required = s.get("required", [])
             for key, value in s.get("properties", {}).items():
-                avro_type_dict = get_type(key, value, prefix)
+                avro_type_dict = get_type(value)
                 avro_type_dict["name"] = key
 
                 if key not in required:
