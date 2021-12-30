@@ -3,7 +3,7 @@ import os
 import tempfile
 import uuid
 from datetime import date, datetime, time
-from typing import List, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -32,6 +32,7 @@ class TestModel(AvroBase):
     c8: bool
     c9: UUID
     c10: Optional[UUID]
+    c11: Dict[str, str]
 
 
 class ComplexTestModel(AvroBase):
@@ -68,15 +69,18 @@ def test_avro():
             {"name": "c8", "type": "boolean"},
             {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}},
             {"name": "c10", "type": [{"type": "string", "logicalType": "uuid"}, "null"], "default": None},
+            {"name": "c11", "type": {"default": {}, "type": "map", "values": {"type": "string"}}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 10
+    assert len(schema.fields) == 11
 
 
 def test_avro_write():
-    record1 = TestModel(c1=1, c2=2, c3=3, c4=4, c5=5, c6=6, c7=7, c8=True, c9=uuid.uuid4(), c10=uuid.uuid4())
+    record1 = TestModel(
+        c1="1", c2=2, c3=3, c4=4, c5=5, c6=6, c7=7, c8=True, c9=uuid.uuid4(), c10=uuid.uuid4(), c11={"key": "value"}
+    )
 
     parsed_schema = parse_schema(TestModel.avro_schema())
 
@@ -234,6 +238,19 @@ def test_avsc_to_pydantic_primitive():
         "    col5: float\n"
         "    col6: bool" in pydantic_code
     )
+
+
+def test_avsc_to_pydantic_map():
+    pydantic_code = avsc_to_pydatic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "col1", "type": {"type": "map", "values": "string", "default": {}}},
+            ],
+        }
+    )
+    assert "class Test(BaseModel):\n" "    col1: Dict[str, str]" in pydantic_code
 
 
 def test_avsc_to_pydantic_logical():
