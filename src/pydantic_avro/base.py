@@ -92,10 +92,13 @@ class AvroBase(BaseModel):
             elif t == "boolean":
                 avro_type_dict["type"] = "boolean"
             elif t == "object":
-                value_type = get_type(a)
+                if a is None:
+                    value_type = "string"
+                else:
+                    value_type = get_type(a)
                 if isinstance(value_type, dict) and len(value_type) == 1:
                     value_type = value_type.get("type")
-                avro_type_dict["type"] = {"type": "map", "values": value_type, "default": {}}
+                avro_type_dict["type"] = {"type": "map", "values": value_type}
             else:
                 raise NotImplementedError(
                     f"Type '{t}' not support yet, "

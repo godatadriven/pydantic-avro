@@ -32,6 +32,7 @@ class TestModel(AvroBase):
     c9: UUID
     c10: Optional[UUID]
     c11: Dict[str, str]
+    c12: dict
 
 
 class ComplexTestModel(AvroBase):
@@ -73,17 +74,29 @@ def test_avro():
             {"name": "c8", "type": "boolean"},
             {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}},
             {"name": "c10", "type": [{"type": "string", "logicalType": "uuid"}, "null"], "default": None},
-            {"name": "c11", "type": {"default": {}, "type": "map", "values": "string"}},
+            {"name": "c11", "type": {"type": "map", "values": "string"}},
+            {"name": "c12", "type": {"type": "map", "values": "string"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 11
+    assert len(schema.fields) == 12
 
 
 def test_avro_write():
     record1 = TestModel(
-        c1="1", c2=2, c3=3, c4=4, c5=5, c6=6, c7=7, c8=True, c9=uuid.uuid4(), c10=uuid.uuid4(), c11={"key": "value"}
+        c1="1",
+        c2=2,
+        c3=3,
+        c4=4,
+        c5=5,
+        c6=6,
+        c7=7,
+        c8=True,
+        c9=uuid.uuid4(),
+        c10=uuid.uuid4(),
+        c11={"key": "value"},
+        c12={},
     )
 
     parsed_schema = parse_schema(TestModel.avro_schema())
@@ -178,7 +191,7 @@ def test_complex_avro():
                 },
             },
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
-            {"name": "c5", "type": {"default": {}, "type": "map", "values": "NestedModel"}},
+            {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
