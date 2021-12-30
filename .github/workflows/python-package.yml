@@ -41,7 +41,7 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           files: ./coverage.xml
-  lint:
+  flake8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -59,3 +59,35 @@ jobs:
           poetry run pflake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           poetry run pflake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry install
+      - name: Lint with black
+        run: |
+          poetry run black --check .
+
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry install
+      - name: Lint with isort
+        run: |
+          poetry run isort --check .
