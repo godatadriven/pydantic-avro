@@ -39,6 +39,7 @@ class ComplexTestModel(AvroBase):
     c2: NestedModel
     c3: List[NestedModel]
     c4: List[datetime]
+    c5: Dict[str, NestedModel]
 
 
 class ReusedObject(AvroBase):
@@ -49,6 +50,10 @@ class ReusedObject(AvroBase):
 class ReusedObjectArray(AvroBase):
     c1: List[Nested2Model]
     c2: Nested2Model
+
+
+class DefaultValues(AvroBase):
+    c1: str = "test"
 
 
 def test_avro():
@@ -68,7 +73,7 @@ def test_avro():
             {"name": "c8", "type": "boolean"},
             {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}},
             {"name": "c10", "type": [{"type": "string", "logicalType": "uuid"}, "null"], "default": None},
-            {"name": "c11", "type": {"default": {}, "type": "map", "values": {"type": "string"}}},
+            {"name": "c11", "type": {"default": {}, "type": "map", "values": "string"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
@@ -173,11 +178,12 @@ def test_complex_avro():
                 },
             },
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
+            {"name": "c5", "type": {"default": {}, "type": "map", "values": "NestedModel"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 4
+    assert len(schema.fields) == 5
 
 
 def test_avro_write_complex():
@@ -186,6 +192,7 @@ def test_avro_write_complex():
         c2=NestedModel(c11=Nested2Model(c111="test")),
         c3=[NestedModel(c11=Nested2Model(c111="test"))],
         c4=[1, 2, 3, 4],
+        c5={"key": NestedModel(c11=Nested2Model(c111="test"))},
     )
 
     parsed_schema = parse_schema(ComplexTestModel.avro_schema())
@@ -206,3 +213,18 @@ def test_avro_write_complex():
             for record in reader(fo):
                 result_records.append(ComplexTestModel.parse_obj(record))
     assert records == result_records
+
+
+def test_defaults():
+    result = DefaultValues.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "DefaultValues",
+        "name": "DefaultValues",
+        "fields": [
+            {"name": "c1", "type": "string", "default": "test"},
+        ],
+    }
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 1

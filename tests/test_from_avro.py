@@ -45,6 +45,50 @@ def test_avsc_to_pydantic_map():
     assert "class Test(BaseModel):\n" "    col1: Dict[str, str]" in pydantic_code
 
 
+def test_avsc_to_pydantic_map_nested_object():
+    pydantic_code = avsc_to_pydatic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "col1",
+                    "type": {
+                        "type": "map",
+                        "values": {"type": "record", "name": "Nested", "fields": [{"name": "col1", "type": "string"}]},
+                        "default": {},
+                    },
+                },
+            ],
+        }
+    )
+    assert "class Test(BaseModel):\n" "    col1: Dict[str, Nested]" in pydantic_code
+    assert "class Nested(BaseModel):\n" "    col1: str" in pydantic_code
+
+
+def test_avsc_to_pydantic_map_nested_array():
+    pydantic_code = avsc_to_pydatic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "col1",
+                    "type": {
+                        "type": "map",
+                        "values": {
+                            "type": "array",
+                            "items": "string",
+                        },
+                        "default": {},
+                    },
+                },
+            ],
+        }
+    )
+    assert "class Test(BaseModel):\n" "    col1: Dict[str, List[str]]" in pydantic_code
+
+
 def test_avsc_to_pydantic_logical():
     pydantic_code = avsc_to_pydatic(
         {
@@ -118,8 +162,8 @@ def test_avsc_to_pydantic_complex():
     assert (
         "class Test(BaseModel):\n"
         "    col1: Nested\n"
-        "    col2: List[int] = []\n"
-        "    col3: List[Nested] = []\n" in pydantic_code
+        "    col2: List[int]\n"
+        "    col3: List[Nested]\n" in pydantic_code
     )
 
     assert "class Nested(BaseModel):\n    pass\n" in pydantic_code

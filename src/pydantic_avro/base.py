@@ -33,6 +33,8 @@ class AvroBase(BaseModel):
             r = value.get("$ref")
             a = value.get("additionalProperties")
             avro_type_dict = {}
+            if "default" in value:
+                avro_type_dict["default"] = value.get("default")
             if r is not None:
                 class_name = r.replace("#/definitions/", "")
                 if class_name in classes_seen:
@@ -90,7 +92,10 @@ class AvroBase(BaseModel):
             elif t == "boolean":
                 avro_type_dict["type"] = "boolean"
             elif t == "object":
-                avro_type_dict["type"] = {"type": "map", "values": get_type(a), "default": {}}
+                value_type = get_type(a)
+                if isinstance(value_type, dict) and len(value_type) == 1:
+                    value_type = value_type.get("type")
+                avro_type_dict["type"] = {"type": "map", "values": value_type, "default": {}}
             else:
                 raise NotImplementedError(
                     f"Type '{t}' not support yet, "
@@ -108,8 +113,9 @@ class AvroBase(BaseModel):
                 avro_type_dict["name"] = key
 
                 if key not in required:
-                    avro_type_dict["type"] = [avro_type_dict["type"], "null"]
-                    avro_type_dict["default"] = None
+                    if "default" not in avro_type_dict:
+                        avro_type_dict["type"] = [avro_type_dict["type"], "null"]
+                        avro_type_dict["default"] = None
 
                 fields.append(avro_type_dict)
             return fields
