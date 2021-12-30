@@ -79,7 +79,11 @@ def avsc_to_pydatic(schema: dict) -> str:
         for field in schema["fields"]:
             n = field["name"]
             t = get_python_type(field["type"])
-            current += f"    {n}: {t}\n"
+            default = field.get("default")
+            if default is None:
+                current += f"    {n}: {t}\n"
+            else:
+                current += f"    {n}: {t} = {json.dumps(default)}\n"
         if len(schema["fields"]) == 0:
             current += "    pass\n"
 

@@ -116,6 +116,8 @@ class AvroBase(BaseModel):
                     if "default" not in avro_type_dict:
                         avro_type_dict["type"] = [avro_type_dict["type"], "null"]
                         avro_type_dict["default"] = None
+                    elif avro_type_dict.get("default") is None:
+                        avro_type_dict["type"] = [avro_type_dict["type"], "null"]
 
                 fields.append(avro_type_dict)
             return fields

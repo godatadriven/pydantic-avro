@@ -167,3 +167,23 @@ def test_avsc_to_pydantic_complex():
     )
 
     assert "class Nested(BaseModel):\n    pass\n" in pydantic_code
+
+
+def test_default():
+    pydantic_code = avsc_to_pydatic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "col1", "type": "string", "default": "test"},
+                {"name": "col2", "type": ["string", "null"], "default": None},
+                {"name": "col3", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}},
+            ],
+        }
+    )
+    assert (
+        "class Test(BaseModel):\n"
+        '    col1: str = "test"\n'
+        "    col2: Optional[str] = None\n"
+        '    col3: Dict[str, str] = {"key": "value"}' in pydantic_code
+    )
