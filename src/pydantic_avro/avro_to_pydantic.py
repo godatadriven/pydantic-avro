@@ -62,7 +62,10 @@ def avsc_to_pydatic(schema: dict) -> str:
             value_type = get_python_type(t.get("values"))
             py_type = f"Dict[str, {value_type}] = {{}}"
         else:
-            raise NotImplementedError(f"Type {t} not supported yet")
+            raise NotImplementedError(
+                f"Type {t} not supported yet, "
+                f"please report this at https://github.com/godatadriven/pydantic-avro/issues"
+            )
         if optional:
             return f"Optional[{py_type}] = None"
         else:

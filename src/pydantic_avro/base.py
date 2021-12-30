@@ -92,7 +92,10 @@ class AvroBase(BaseModel):
             elif t == "object":
                 avro_type_dict["type"] = {"type": "map", "values": get_type(a), "default": {}}
             else:
-                raise RuntimeError(f"Unknown type found: '{t}'")
+                raise NotImplementedError(
+                    f"Type '{t}' not support yet, "
+                    f"please report this at https://github.com/godatadriven/pydantic-avro/issues"
+                )
             return avro_type_dict
 
         def get_fields(s: dict) -> List[dict]:
