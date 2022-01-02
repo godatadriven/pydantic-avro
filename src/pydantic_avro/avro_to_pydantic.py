@@ -54,13 +54,13 @@ def avsc_to_pydatic(schema: dict) -> str:
             py_type = "str"
         elif t.get("type") == "array":
             sub_type = get_python_type(t.get("items"))
-            py_type = f"List[{sub_type}] = []"
+            py_type = f"List[{sub_type}]"
         elif t.get("type") == "record":
             record_type_to_pydantic(t)
             py_type = t.get("name")
         elif t.get("type") == "map":
             value_type = get_python_type(t.get("values"))
-            py_type = f"Dict[str, {value_type}] = {{}}"
+            py_type = f"Dict[str, {value_type}]"
         else:
             raise NotImplementedError(
                 f"Type {t} not supported yet, "
@@ -79,7 +79,11 @@ def avsc_to_pydatic(schema: dict) -> str:
         for field in schema["fields"]:
             n = field["name"]
             t = get_python_type(field["type"])
-            current += f"    {n}: {t}\n"
+            default = field.get("default")
+            if default is None:
+                current += f"    {n}: {t}\n"
+            else:
+                current += f"    {n}: {t} = {json.dumps(default)}\n"
         if len(schema["fields"]) == 0:
             current += "    pass\n"
 
