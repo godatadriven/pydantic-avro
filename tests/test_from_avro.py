@@ -1,13 +1,13 @@
-from pydantic_avro.avro_to_pydantic import avsc_to_pydatic
+from pydantic_avro.avro_to_pydantic import avsc_to_pydantic
 
 
 def test_avsc_to_pydantic_empty():
-    pydantic_code = avsc_to_pydatic({"name": "Test", "type": "record", "fields": []})
+    pydantic_code = avsc_to_pydantic({"name": "Test", "type": "record", "fields": []})
     assert "class Test(BaseModel):\n    pass" in pydantic_code
 
 
 def test_avsc_to_pydantic_primitive():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -33,7 +33,7 @@ def test_avsc_to_pydantic_primitive():
 
 
 def test_avsc_to_pydantic_map():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -46,7 +46,7 @@ def test_avsc_to_pydantic_map():
 
 
 def test_avsc_to_pydantic_map_nested_object():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -67,7 +67,7 @@ def test_avsc_to_pydantic_map_nested_object():
 
 
 def test_avsc_to_pydantic_map_nested_array():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -90,7 +90,7 @@ def test_avsc_to_pydantic_map_nested_array():
 
 
 def test_avsc_to_pydantic_logical():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -129,7 +129,7 @@ def test_avsc_to_pydantic_logical():
 
 
 def test_avsc_to_pydantic_complex():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
@@ -170,7 +170,7 @@ def test_avsc_to_pydantic_complex():
 
 
 def test_default():
-    pydantic_code = avsc_to_pydatic(
+    pydantic_code = avsc_to_pydantic(
         {
             "name": "Test",
             "type": "record",
