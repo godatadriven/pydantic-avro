@@ -178,6 +178,8 @@ def test_default():
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2", "type": ["string", "null"], "default": None},
                 {"name": "col3", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}},
+                {"name": "col4", "type": "boolean", "default": True},
+                {"name": "col5", "type": "boolean", "default": False},
             ],
         }
     )
@@ -185,5 +187,7 @@ def test_default():
         "class Test(BaseModel):\n"
         '    col1: str = "test"\n'
         "    col2: Optional[str] = None\n"
-        '    col3: Dict[str, str] = {"key": "value"}' in pydantic_code
+        '    col3: Dict[str, str] = {"key": "value"}\n'
+        "    col4: bool = True\n"
+        "    col5: bool = False\n" in pydantic_code
     )

@@ -82,6 +82,8 @@ def avsc_to_pydatic(schema: dict) -> str:
             default = field.get("default")
             if default is None:
                 current += f"    {n}: {t}\n"
+            elif isinstance(default, bool):
+                current += f"    {n}: {t} = {default}\n"
             else:
                 current += f"    {n}: {t} = {json.dumps(default)}\n"
         if len(schema["fields"]) == 0:
