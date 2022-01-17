@@ -2,7 +2,7 @@ import json
 from typing import Optional, Union
 
 
-def avsc_to_pydatic(schema: dict) -> str:
+def avsc_to_pydantic(schema: dict) -> str:
     """Generate python code of pydantic of given Avro Schema"""
     if "type" not in schema or schema["type"] != "record":
         raise AttributeError("Type not supported")
@@ -82,6 +82,8 @@ def avsc_to_pydatic(schema: dict) -> str:
             default = field.get("default")
             if default is None:
                 current += f"    {n}: {t}\n"
+            elif isinstance(default, bool):
+                current += f"    {n}: {t} = {default}\n"
             else:
                 current += f"    {n}: {t} = {json.dumps(default)}\n"
         if len(schema["fields"]) == 0:
@@ -109,7 +111,7 @@ from pydantic import BaseModel
 def convert_file(avsc_path: str, output_path: Optional[str] = None):
     with open(avsc_path, "r") as fh:
         avsc_dict = json.load(fh)
-    file_content = avsc_to_pydatic(avsc_dict)
+    file_content = avsc_to_pydantic(avsc_dict)
     if output_path is None:
         print(file_content)
     else:
