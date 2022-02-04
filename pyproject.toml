@@ -18,7 +18,7 @@ packages = [{ include = "pydantic_avro", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.6.1,<4.0"
-pydantic = ">=1.0.0"
+pydantic = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
 coverage= {version=  "^6.1.1", extras=["toml"]}
