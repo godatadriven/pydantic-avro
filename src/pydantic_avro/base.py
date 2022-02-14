@@ -24,7 +24,7 @@ class AvroBase(BaseModel):
             d = schema.get("definitions", {}).get(id)
             if d is None:
                 raise RuntimeError(f"Definition {id} does not exist")
-            return get_fields(d)
+            return d
 
         def get_type(value: dict) -> dict:
             """Returns a type of a single field"""
@@ -40,12 +40,17 @@ class AvroBase(BaseModel):
                 if class_name in classes_seen:
                     avro_type_dict["type"] = class_name
                 else:
+                    d = get_definition(r, schema)
                     avro_type_dict["type"] = {
                         "type": "record",
-                        "fields": get_definition(r, schema),
+                        "fields": get_fields(d),
                         # Name of the struct should be unique true the complete schema
                         # Because of this the path in the schema is tracked and used as name for a nested struct/array
                         "name": class_name,
+                    } if "enum" not in d else {
+                        "type": "enum",
+                        "symbols": [str(v) for v in d["enum"]],
+                        "name": d["title"],
                     }
                     classes_seen.add(class_name)
             elif t == "array":

@@ -1,3 +1,4 @@
+import enum
 import json
 import os
 import tempfile
@@ -20,6 +21,15 @@ class NestedModel(AvroBase):
     c11: Nested2Model
 
 
+class Status(str, enum.Enum):
+    # Here str is important to serialize pydantic object correctly
+
+    # Note on value:
+    #   As avro schema validate enum symbols by default. So Every symbol must be a valid avro symbol
+    passed = "passed"
+    failed = "failed"
+
+
 class TestModel(AvroBase):
     c1: str
     c2: int
@@ -33,6 +43,7 @@ class TestModel(AvroBase):
     c10: Optional[UUID]
     c11: Dict[str, str]
     c12: dict
+    c13: Status
 
 
 class ComplexTestModel(AvroBase):
@@ -76,11 +87,12 @@ def test_avro():
             {"name": "c10", "type": [{"type": "string", "logicalType": "uuid"}, "null"], "default": None},
             {"name": "c11", "type": {"type": "map", "values": "string"}},
             {"name": "c12", "type": {"type": "map", "values": "string"}},
+            {"name": "c13", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 12
+    assert len(schema.fields) == 13
 
 
 def test_avro_write():
@@ -97,6 +109,7 @@ def test_avro_write():
         c10=uuid.uuid4(),
         c11={"key": "value"},
         c12={},
+        c13=Status.passed,
     )
 
     parsed_schema = parse_schema(TestModel.avro_schema())
