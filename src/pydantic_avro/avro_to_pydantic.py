@@ -48,8 +48,13 @@ def avsc_to_pydantic(schema: dict) -> str:
         elif t.get("logicalType") == "date":
             py_type = "date"
         elif t.get("type") == "enum":
-            # TODO: implement Python enum optional
-            py_type = "str"
+            enum_name = t.get("name")
+            if enum_name not in classes:
+                enum_class = "class Status(str, Enum):\n"
+                for s in t.get("symbols"):
+                    enum_class += f'    {s} = "{s}"\n'
+                classes[enum_name] = enum_class
+            py_type = enum_name
         elif t.get("type") == "string":
             py_type = "str"
         elif t.get("type") == "array":
@@ -96,6 +101,7 @@ def avsc_to_pydantic(schema: dict) -> str:
     file_content = """
 from datetime import date, datetime, time
 from decimal import Decimal
+from enum import Enum
 from typing import List, Optional, Dict
 from uuid import UUID
 

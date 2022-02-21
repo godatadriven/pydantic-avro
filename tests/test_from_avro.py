@@ -191,3 +191,36 @@ def test_default():
         "    col4: bool = True\n"
         "    col5: bool = False\n" in pydantic_code
     )
+
+
+def test_enums():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+            ],
+        }
+    )
+
+    assert "class Test(BaseModel):\n" "    c1: Status" in pydantic_code
+
+    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+
+
+def test_enums_reuse():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+                {"name": "c2", "type": "Status"},
+            ],
+        }
+    )
+
+    assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in pydantic_code
+
+    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
