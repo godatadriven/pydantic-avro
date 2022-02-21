@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ class AvroBase(BaseModel):
             d = schema.get("definitions", {}).get(id)
             if d is None:
                 raise RuntimeError(f"Definition {id} does not exist")
-            return get_fields(d)
+            return d
 
         def get_type(value: dict) -> dict:
             """Returns a type of a single field"""
@@ -32,7 +32,7 @@ class AvroBase(BaseModel):
             f = value.get("format")
             r = value.get("$ref")
             a = value.get("additionalProperties")
-            avro_type_dict = {}
+            avro_type_dict: Dict[str, Any] = {}
             if "default" in value:
                 avro_type_dict["default"] = value.get("default")
             if r is not None:
@@ -40,13 +40,21 @@ class AvroBase(BaseModel):
                 if class_name in classes_seen:
                     avro_type_dict["type"] = class_name
                 else:
-                    avro_type_dict["type"] = {
-                        "type": "record",
-                        "fields": get_definition(r, schema),
-                        # Name of the struct should be unique true the complete schema
-                        # Because of this the path in the schema is tracked and used as name for a nested struct/array
-                        "name": class_name,
-                    }
+                    d = get_definition(r, schema)
+                    if "enum" in d:
+                        avro_type_dict["type"] = {
+                            "type": "enum",
+                            "symbols": [str(v) for v in d["enum"]],
+                            "name": d["title"],
+                        }
+                    else:
+                        avro_type_dict["type"] = {
+                            "type": "record",
+                            "fields": get_fields(d),
+                            # Name of the struct should be unique true the complete schema
+                            # Because of this the path in the schema is tracked and used as name for a nested struct/array
+                            "name": class_name,
+                        }
                     classes_seen.add(class_name)
             elif t == "array":
                 items = value.get("items")
