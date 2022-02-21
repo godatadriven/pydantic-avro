@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -32,7 +32,7 @@ class AvroBase(BaseModel):
             f = value.get("format")
             r = value.get("$ref")
             a = value.get("additionalProperties")
-            avro_type_dict = {}
+            avro_type_dict: Dict[str, Any] = {}
             if "default" in value:
                 avro_type_dict["default"] = value.get("default")
             if r is not None:
@@ -41,17 +41,20 @@ class AvroBase(BaseModel):
                     avro_type_dict["type"] = class_name
                 else:
                     d = get_definition(r, schema)
-                    avro_type_dict["type"] = {
-                        "type": "record",
-                        "fields": get_fields(d),
-                        # Name of the struct should be unique true the complete schema
-                        # Because of this the path in the schema is tracked and used as name for a nested struct/array
-                        "name": class_name,
-                    } if "enum" not in d else {
-                        "type": "enum",
-                        "symbols": [str(v) for v in d["enum"]],
-                        "name": d["title"],
-                    }
+                    if "enum" in d:
+                        avro_type_dict["type"] = {
+                            "type": "enum",
+                            "symbols": [str(v) for v in d["enum"]],
+                            "name": d["title"],
+                        }
+                    else:
+                        avro_type_dict["type"] = {
+                            "type": "record",
+                            "fields": get_fields(d),
+                            # Name of the struct should be unique true the complete schema
+                            # Because of this the path in the schema is tracked and used as name for a nested struct/array
+                            "name": class_name,
+                        }
                     classes_seen.add(class_name)
             elif t == "array":
                 items = value.get("items")
