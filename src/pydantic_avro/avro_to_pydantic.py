@@ -50,7 +50,7 @@ def avsc_to_pydantic(schema: dict) -> str:
         elif t.get("type") == "enum":
             enum_name = t.get("name")
             if enum_name not in classes:
-                enum_class = "class Status(str, Enum):\n"
+                enum_class = f"class {enum_name}(str, Enum):\n"
                 for s in t.get("symbols"):
                     enum_class += f'    {s} = "{s}"\n'
                 classes[enum_name] = enum_class
