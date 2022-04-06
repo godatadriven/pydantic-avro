@@ -9,6 +9,7 @@ from uuid import UUID
 
 from avro import schema as avro_schema
 from fastavro import parse_schema, reader, writer
+from pydantic import Field
 
 from pydantic_avro.base import AvroBase
 
@@ -66,6 +67,10 @@ class ReusedObjectArray(AvroBase):
 
 class DefaultValues(AvroBase):
     c1: str = "test"
+
+
+class ModelWithAliases(AvroBase):
+    field: str = Field(..., alias="Field")
 
 
 def test_avro():
@@ -254,3 +259,23 @@ def test_defaults():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 1
+
+
+def test_model_with_alias():
+    result = ModelWithAliases.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "ModelWithAliases",
+        "name": "ModelWithAliases",
+        "fields": [{"type": "string", "name": "Field"}],
+    }
+
+    result = ModelWithAliases.avro_schema(by_alias=False)
+    assert result == {
+        "type": "record",
+        "namespace": "ModelWithAliases",
+        "name": "ModelWithAliases",
+        "fields": [
+            {"type": "string", "name": "field"},
+        ],
+    }
