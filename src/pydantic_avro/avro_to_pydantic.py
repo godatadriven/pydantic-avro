@@ -1,6 +1,41 @@
 import json
 from typing import Optional, Union
 
+RESERVED_KEYWORDS= {
+    "and",
+    "as",
+    "assert",
+    "break",
+    "class",
+    "continue",
+    "def",
+    "del",
+    "elif",
+    "else",
+    "except",
+    "False",
+    "finally",
+    "for",
+    "from",
+    "global",
+    "if",
+    "import",
+    "in",
+    "is",
+    "lambda",
+    "None",
+    "nonlocal",
+    "not",
+    "or",
+    "pass",
+    "raise",
+    "return",
+    "True",
+    "try",
+    "while",
+    "with",
+    "yield",
+}
 
 def avsc_to_pydantic(schema: dict) -> str:
     """Generate python code of pydantic of given Avro Schema"""
@@ -35,7 +70,8 @@ def avsc_to_pydantic(schema: dict) -> str:
             if len(t) > 2 or (not optional and len(t) > 1):
                 raise NotImplementedError("Only a single type ia supported yet")
             c = t.copy()
-            c.remove("null")
+            if "null" in c:
+                c.remove("null")
             py_type = get_python_type(c[0])
         elif t.get("logicalType") == "uuid":
             py_type = "UUID"
@@ -83,6 +119,7 @@ def avsc_to_pydantic(schema: dict) -> str:
 
         for field in schema["fields"]:
             n = field["name"]
+            n = n if n not in RESERVED_KEYWORDS else f"{n}_"
             t = get_python_type(field["type"])
             default = field.get("default")
             if default is None:
