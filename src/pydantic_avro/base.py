@@ -8,7 +8,12 @@ class AvroBase(BaseModel):
 
     @classmethod
     def avro_schema(cls, by_alias: bool = True) -> dict:
-        """Return the avro schema for the pydantic class"""
+        """
+        Return the avro schema for the pydantic class
+
+        :param by_alias: generate the schemas using the aliases defined, if any
+        :return: dict with the Avro Schema for the model
+        """
         schema = cls.schema(by_alias=by_alias)
         return cls._avro_schema(schema)
 
