@@ -72,7 +72,7 @@ def avsc_to_pydantic(schema: dict) -> str:
                 f"please report this at https://github.com/godatadriven/pydantic-avro/issues"
             )
         if optional:
-            return f"Optional[{py_type}] = None"
+            return f"Optional[{py_type}]"
         else:
             return py_type
 
@@ -80,14 +80,14 @@ def avsc_to_pydantic(schema: dict) -> str:
         """Convert a single avro record type to a pydantic class"""
         name = schema["name"]
         current = f"class {name}(BaseModel):\n"
-
+        missing = object()
         for field in schema["fields"]:
             n = field["name"]
             t = get_python_type(field["type"])
-            default = field.get("default")
-            if default is None:
+            default = field.get("default", missing)
+            if default is missing:
                 current += f"    {n}: {t}\n"
-            elif isinstance(default, bool):
+            elif isinstance(default, (bool, type(None))):
                 current += f"    {n}: {t} = {default}\n"
             else:
                 current += f"    {n}: {t} = {json.dumps(default)}\n"
