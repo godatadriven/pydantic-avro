@@ -40,6 +40,10 @@ class AvroBase(BaseModel):
             avro_type_dict: Dict[str, Any] = {}
             if "default" in value:
                 avro_type_dict["default"] = value.get("default")
+            if "description" in value:
+                avro_type_dict["doc"] = value.get("description")
+            if "allOf" in value and len(value['allOf']) == 1:
+                r = value['allOf'][0]['$ref']
             if r is not None:
                 class_name = r.replace("#/definitions/", "")
                 if class_name in classes_seen:
