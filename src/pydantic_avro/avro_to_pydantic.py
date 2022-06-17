@@ -80,12 +80,12 @@ def avsc_to_pydantic(schema: dict) -> str:
         """Convert a single avro record type to a pydantic class"""
         name = schema["name"]
         current = f"class {name}(BaseModel):\n"
-        missing = object()
+
         for field in schema["fields"]:
             n = field["name"]
             t = get_python_type(field["type"])
-            default = field.get("default", missing)
-            if default is missing:
+            default = field.get("default")
+            if "default" not in field:
                 current += f"    {n}: {t}\n"
             elif isinstance(default, (bool, type(None))):
                 current += f"    {n}: {t} = {default}\n"
