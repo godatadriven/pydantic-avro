@@ -177,7 +177,7 @@ def test_default():
             "fields": [
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2_1", "type": ["null", "string"], "default": None},
-                {"name": "col2_2", "type": ["string", "null"], "default": 'default_str'},
+                {"name": "col2_2", "type": ["string", "null"], "default": "default_str"},
                 {"name": "col3", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}},
                 {"name": "col4", "type": "boolean", "default": True},
                 {"name": "col5", "type": "boolean", "default": False},

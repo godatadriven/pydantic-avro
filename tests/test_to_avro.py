@@ -40,11 +40,11 @@ class TestModel(AvroBase):
     c6: time
     c7: Optional[str]
     c8: bool
-    c9: UUID = Field(..., description='This is UUID')
-    c10: Optional[UUID] = Field(None, description='This is an optional UUID')
+    c9: UUID = Field(..., description="This is UUID")
+    c10: Optional[UUID] = Field(None, description="This is an optional UUID")
     c11: Dict[str, str]
     c12: dict
-    c13: Status = Field(..., description='This is Status')
+    c13: Status = Field(..., description="This is Status")
 
 
 class ComplexTestModel(AvroBase):
@@ -101,9 +101,9 @@ def test_avro():
             {"name": "c12", "type": {"type": "map", "values": "string"}},
             {
                 "name": "c13",
-                "type": {"type": "enum","symbols": ["passed", "failed"], "name": "Status"},
+                "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
                 "doc": "This is Status",
-             },
+            },
         ],
     }
     # Reading schema with avro library to be sure format is correct
