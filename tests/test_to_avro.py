@@ -4,7 +4,7 @@ import os
 import tempfile
 import uuid
 from datetime import date, datetime, time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -40,11 +40,11 @@ class TestModel(AvroBase):
     c6: time
     c7: Optional[str]
     c8: bool
-    c9: UUID
-    c10: Optional[UUID]
+    c9: UUID = Field(..., description="This is UUID")
+    c10: Optional[UUID] = Field(None, description="This is an optional UUID")
     c11: Dict[str, str]
     c12: dict
-    c13: Status
+    c13: Status = Field(..., description="This is Status")
 
 
 class ComplexTestModel(AvroBase):
@@ -67,6 +67,8 @@ class ReusedObjectArray(AvroBase):
 
 class DefaultValues(AvroBase):
     c1: str = "test"
+    c2: Optional[str]
+    c3: Optional[str] = "test"
 
 
 class ModelWithAliases(AvroBase):
@@ -88,11 +90,20 @@ def test_avro():
             {"name": "c6", "type": {"type": "long", "logicalType": "time-micros"}},
             {"name": "c7", "type": ["null", "string"], "default": None},
             {"name": "c8", "type": "boolean"},
-            {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}},
-            {"name": "c10", "type": ["null", {"type": "string", "logicalType": "uuid"}], "default": None},
+            {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}, "doc": "This is UUID"},
+            {
+                "name": "c10",
+                "type": ["null", {"type": "string", "logicalType": "uuid"}],
+                "default": None,
+                "doc": "This is an optional UUID",
+            },
             {"name": "c11", "type": {"type": "map", "values": "string"}},
             {"name": "c12", "type": {"type": "map", "values": "string"}},
-            {"name": "c13", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+            {
+                "name": "c13",
+                "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                "doc": "This is Status",
+            },
         ],
     }
     # Reading schema with avro library to be sure format is correct
@@ -254,11 +265,14 @@ def test_defaults():
         "name": "DefaultValues",
         "fields": [
             {"name": "c1", "type": "string", "default": "test"},
+            {"name": "c2", "type": ["null", "string"], "default": None},
+            {"name": "c3", "type": "string", "default": "test"},
+            # pydantic .schema has no idea c3 can take None, so we do not allow it here either
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 1
+    assert len(schema.fields) == 3
 
 
 def test_model_with_alias():

@@ -72,7 +72,7 @@ def avsc_to_pydantic(schema: dict) -> str:
                 f"please report this at https://github.com/godatadriven/pydantic-avro/issues"
             )
         if optional:
-            return f"Optional[{py_type}] = None"
+            return f"Optional[{py_type}]"
         else:
             return py_type
 
@@ -85,9 +85,9 @@ def avsc_to_pydantic(schema: dict) -> str:
             n = field["name"]
             t = get_python_type(field["type"])
             default = field.get("default")
-            if default is None:
+            if "default" not in field:
                 current += f"    {n}: {t}\n"
-            elif isinstance(default, bool):
+            elif isinstance(default, (bool, type(None))):
                 current += f"    {n}: {t} = {default}\n"
             else:
                 current += f"    {n}: {t} = {json.dumps(default)}\n"
