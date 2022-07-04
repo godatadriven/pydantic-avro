@@ -130,10 +130,10 @@ class AvroBase(BaseModel):
 
                 if key not in required:
                     if "default" not in avro_type_dict:
-                        avro_type_dict["type"] = [avro_type_dict["type"], "null"]
+                        avro_type_dict["type"] = ["null", avro_type_dict["type"]]
                         avro_type_dict["default"] = None
                     elif avro_type_dict.get("default") is None:
-                        avro_type_dict["type"] = [avro_type_dict["type"], "null"]
+                        avro_type_dict["type"] = ["null", avro_type_dict["type"]]
 
                 fields.append(avro_type_dict)
             return fields
