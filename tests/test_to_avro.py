@@ -4,7 +4,7 @@ import os
 import tempfile
 import uuid
 from datetime import date, datetime, time
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -273,6 +273,16 @@ def test_defaults():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 3
+
+
+def test_custom_namespace():
+    # if given namespace should change namespace in avro schema
+    result = DefaultValues.avro_schema(namespace="test.test")
+    assert result["namespace"] == "test.test"
+
+    # if not given namespace should be same as name of the avro schema
+    result = DefaultValues.avro_schema()
+    assert result["namespace"] == result["name"]
 
 
 def test_model_with_alias():

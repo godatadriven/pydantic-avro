@@ -1,5 +1,4 @@
 from typing import Any, Dict, List, Optional
-from unicodedata import name
 
 from pydantic import BaseModel
 
