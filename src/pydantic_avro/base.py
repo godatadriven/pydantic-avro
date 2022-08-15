@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -7,18 +7,24 @@ class AvroBase(BaseModel):
     """This is base pydantic class that will add some methods"""
 
     @classmethod
-    def avro_schema(cls, by_alias: bool = True) -> dict:
+    def avro_schema(cls, by_alias: bool = True, namespace: Optional[str] = None) -> dict:
         """
         Return the avro schema for the pydantic class
 
         :param by_alias: generate the schemas using the aliases defined, if any
+        :param namespace: Provide an optional namespace string to use in schema generation
         :return: dict with the Avro Schema for the model
         """
         schema = cls.schema(by_alias=by_alias)
-        return cls._avro_schema(schema)
+
+        if namespace is None:
+            # default namespace will be based on title
+            namespace = schema["title"]
+
+        return cls._avro_schema(schema, namespace)
 
     @staticmethod
-    def _avro_schema(schema: dict) -> dict:
+    def _avro_schema(schema: dict, namespace: str) -> dict:
         """Return the avro schema for the given pydantic schema"""
 
         classes_seen = set()
@@ -142,4 +148,4 @@ class AvroBase(BaseModel):
 
         fields = get_fields(schema)
 
-        return {"type": "record", "namespace": schema["title"], "name": schema["title"], "fields": fields}
+        return {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
