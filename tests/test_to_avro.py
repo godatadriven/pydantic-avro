@@ -4,7 +4,7 @@ import os
 import tempfile
 import uuid
 from datetime import date, datetime, time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -12,6 +12,8 @@ from fastavro import parse_schema, reader, writer
 from pydantic import Field
 
 from pydantic_avro.base import AvroBase
+
+from pprint import pprint
 
 
 class Nested2Model(AvroBase):
@@ -47,12 +49,14 @@ class TestModel(AvroBase):
     c13: Status = Field(..., description="This is Status")
 
 
+
 class ComplexTestModel(AvroBase):
     c1: List[str]
     c2: NestedModel
     c3: List[NestedModel]
     c4: List[datetime]
     c5: Dict[str, NestedModel]
+    c6: Union[None, str, int, NestedModel]
 
 
 class ReusedObject(AvroBase):
@@ -73,6 +77,10 @@ class DefaultValues(AvroBase):
 
 class ModelWithAliases(AvroBase):
     field: str = Field(..., alias="Field")
+
+
+class ModelWithUnion(AvroBase):
+    field: Union[None, str, int, NestedModel]
 
 
 def test_avro():
@@ -189,6 +197,7 @@ def test_reused_object_array():
 
 def test_complex_avro():
     result = ComplexTestModel.avro_schema()
+    pprint(result)
     assert result == {
         "type": "record",
         "name": "ComplexTestModel",
@@ -221,11 +230,21 @@ def test_complex_avro():
             },
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
-        ],
+            {
+                'name': 'c6',
+                'type': [
+                    'null',
+                    'string',
+                    'long',
+                    'NestedModel'
+                ]
+            }
+        ]
     }
+
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 5
+    assert len(schema.fields) == 6
 
 
 def test_avro_write_complex():
@@ -303,3 +322,44 @@ def test_model_with_alias():
             {"type": "string", "name": "field"},
         ],
     }
+
+def test_union_avro():
+    result = ModelWithUnion.avro_schema()
+    assert result == {
+        'fields': [
+            {
+                'name': 'field',
+                'type': [
+                    'null',
+                    'string',
+                    'long',
+                    {
+                        'fields': [
+                            {
+                                'name': 'c11',
+                                'type': {
+                                    'fields': [
+                                        {
+                                            'name': 'c111',
+                                            'type': 'string'
+                                        }
+                                    ],
+                                    'name': 'Nested2Model',
+                                    'type': 'record'
+                                }
+                            }
+                        ],
+                        'name': 'NestedModel',
+                        'type': 'record'
+                    }
+                ]
+            }
+        ],
+        'name': 'ModelWithUnion',
+        'namespace': 'ModelWithUnion',
+        'type': 'record'
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 1

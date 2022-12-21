@@ -226,3 +226,34 @@ def test_enums_reuse():
     assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in pydantic_code
 
     assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+
+def test_unions():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "type" : "record",
+            "name" : "Test",
+            "fields" : [
+                {
+                    "name" : "a_union",
+                    "type" : [
+                        "null", "long", "string",
+                        {
+                            "type" : "record",
+                            "name" : "ARecord",
+                            "fields" : [
+                                {
+                                    "name" : "values",
+                                    "type" : {
+                                        "type" : "map",
+                                        "values" : "string"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    )
+
+    assert "a_union: Union[None,int,str,ARecord]" in pydantic_code

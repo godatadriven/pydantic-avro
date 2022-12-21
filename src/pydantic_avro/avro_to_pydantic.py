@@ -30,13 +30,13 @@ def avsc_to_pydantic(schema: dict) -> str:
             else:
                 raise NotImplementedError(f"Type {t} not supported yet")
         elif isinstance(t, list):
-            if "null" in t:
+            if "null" in t and len(t) == 2:
                 optional = True
-            if len(t) > 2 or (not optional and len(t) > 1):
-                raise NotImplementedError("Only a single type ia supported yet")
-            c = t.copy()
-            c.remove("null")
-            py_type = get_python_type(c[0])
+                c = t.copy()
+                c.remove("null")
+                py_type = get_python_type(c[0])
+            else:
+                py_type = f"Union[{','.join([ 'None' if e == 'null' else get_python_type(e) for e in t])}]"
         elif t.get("logicalType") == "uuid":
             py_type = "UUID"
         elif t.get("logicalType") == "decimal":
@@ -102,7 +102,7 @@ def avsc_to_pydantic(schema: dict) -> str:
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from uuid import UUID
 
 from pydantic import BaseModel
