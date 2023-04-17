@@ -306,3 +306,18 @@ def test_model_with_alias():
             {"type": "string", "name": "field"},
         ],
     }
+
+
+class OptionalArray(AvroBase):
+    c1: Optional[List[str]]
+
+
+def test_optional_array():
+    result = OptionalArray.avro_schema()
+
+    assert result == {
+        "type": "record",
+        "namespace": "OptionalArray",
+        "name": "OptionalArray",
+        "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
+    }
