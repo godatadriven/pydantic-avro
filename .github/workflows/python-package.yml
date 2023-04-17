@@ -3,6 +3,9 @@
 
 name: Python package
 
+permissions:
+  checks: write
+
 on:
   push:
     branches: [ main ]
@@ -15,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -33,22 +36,24 @@ jobs:
           poetry run coverage report
           poetry run coverage xml
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
+        uses: mikepenz/action-junit-report@v3
         if: always() # always run even if the previous step fails
         with:
           report_paths: 'junit/report.xml'
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
+
   flake8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Install dependencies
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
@@ -64,10 +69,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Install dependencies
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
@@ -80,10 +85,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Install dependencies
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
