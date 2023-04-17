@@ -45,6 +45,7 @@ class TestModel(AvroBase):
     c11: Dict[str, str]
     c12: dict
     c13: Status = Field(..., description="This is Status")
+    c14: bytes
 
 
 class ComplexTestModel(AvroBase):
@@ -104,11 +105,12 @@ def test_avro():
                 "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
                 "doc": "This is Status",
             },
+            {"name": "c14", "type": "bytes"},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 13
+    assert len(schema.fields) == 14
 
 
 def test_avro_write():
@@ -126,6 +128,7 @@ def test_avro_write():
         c11={"key": "value"},
         c12={},
         c13=Status.passed,
+        c14=bytes(),
     )
 
     parsed_schema = parse_schema(TestModel.avro_schema())

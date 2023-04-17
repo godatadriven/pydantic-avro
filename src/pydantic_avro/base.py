@@ -105,6 +105,8 @@ class AvroBase(BaseModel):
                     "type": "string",
                     "logicalType": "uuid",
                 }
+            elif t == "string" and f == "binary":
+                avro_type_dict["type"] = "bytes"
             elif t == "string":
                 avro_type_dict["type"] = "string"
             elif t == "number":
