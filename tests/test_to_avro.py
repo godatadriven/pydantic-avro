@@ -128,7 +128,7 @@ def test_avro_write():
         c11={"key": "value"},
         c12={},
         c13=Status.passed,
-        c14=bytes()
+        c14=bytes(),
     )
 
     parsed_schema = parse_schema(TestModel.avro_schema())
