@@ -67,6 +67,6 @@ jobs:
         tag_name: v${{ env.NEW_VERSION }}
         release_name: v${{ env.NEW_VERSION }}
         body: |
-          pypi package: https://pypi.org/project/databricks-sdk-python/${{ env.NEW_VERSION }}/
+          pypi package: https://pypi.org/project/pydantic-avro/${{ env.NEW_VERSION }}/
         draft: false
         prerelease: false
