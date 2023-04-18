@@ -4,6 +4,7 @@ import os
 import tempfile
 import uuid
 from datetime import date, datetime, time
+from pprint import pprint
 from typing import Dict, List, Optional, Union
 from uuid import UUID
 
@@ -12,8 +13,6 @@ from fastavro import parse_schema, reader, writer
 from pydantic import Field
 
 from pydantic_avro.base import AvroBase
-
-from pprint import pprint
 
 
 class Nested2Model(AvroBase):
@@ -48,7 +47,6 @@ class TestModel(AvroBase):
     c12: dict
     c13: Status = Field(..., description="This is Status")
     c14: bytes
-
 
 
 class ComplexTestModel(AvroBase):
@@ -233,16 +231,8 @@ def test_complex_avro():
             },
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
-            {
-                'name': 'c6',
-                'type': [
-                    'null',
-                    'string',
-                    'long',
-                    'NestedModel'
-                ]
-            }
-        ]
+            {"name": "c6", "type": ["null", "string", "long", "NestedModel"]},
+        ],
     }
 
     # Reading schema with avro library to be sure format is correct
@@ -330,38 +320,33 @@ def test_model_with_alias():
 def test_union_avro():
     result = ModelWithUnion.avro_schema()
     assert result == {
-        'fields': [
+        "fields": [
             {
-                'name': 'field',
-                'type': [
-                    'null',
-                    'string',
-                    'long',
+                "name": "field",
+                "type": [
+                    "null",
+                    "string",
+                    "long",
                     {
-                        'fields': [
+                        "fields": [
                             {
-                                'name': 'c11',
-                                'type': {
-                                    'fields': [
-                                        {
-                                            'name': 'c111',
-                                            'type': 'string'
-                                        }
-                                    ],
-                                    'name': 'Nested2Model',
-                                    'type': 'record'
-                                }
+                                "name": "c11",
+                                "type": {
+                                    "fields": [{"name": "c111", "type": "string"}],
+                                    "name": "Nested2Model",
+                                    "type": "record",
+                                },
                             }
                         ],
-                        'name': 'NestedModel',
-                        'type': 'record'
-                    }
-                ]
+                        "name": "NestedModel",
+                        "type": "record",
+                    },
+                ],
             }
         ],
-        'name': 'ModelWithUnion',
-        'namespace': 'ModelWithUnion',
-        'type': 'record'
+        "name": "ModelWithUnion",
+        "namespace": "ModelWithUnion",
+        "type": "record",
     }
 
     # Reading schema with avro library to be sure format is correct
