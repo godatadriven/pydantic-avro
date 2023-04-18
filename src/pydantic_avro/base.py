@@ -44,6 +44,8 @@ class AvroBase(BaseModel):
             r = value.get("$ref")
             a = value.get("additionalProperties")
             u = value.get("anyOf")
+            minimum = value.get("minimum")
+            maximum = value.get("maximum")
             avro_type_dict: Dict[str, Any] = {}
             if "default" in value:
                 avro_type_dict["default"] = value.get("default")
@@ -118,8 +120,11 @@ class AvroBase(BaseModel):
             elif t == "number":
                 avro_type_dict["type"] = "double"
             elif t == "integer":
-                # integer in python can be a long
-                avro_type_dict["type"] = "long"
+                # integer in python can be a long, only if minimum and maximum value is set a int can be used
+                if minimum is not None and minimum >= -(2**31) and maximum is not None and maximum <= (2**31 - 1):
+                    avro_type_dict["type"] = "int"
+                else:
+                    avro_type_dict["type"] = "long"
             elif t == "boolean":
                 avro_type_dict["type"] = "boolean"
             elif t == "object":
