@@ -400,3 +400,20 @@ def test_int():
         "name": "IntModel",
         "fields": [{"type": "int", "name": "c1"}],
     }
+
+
+class CustomNameModel(AvroBase):
+    c1: int
+
+    class Config:
+        title = "some_other_name"
+
+
+def test_custom_name():
+    result = CustomNameModel.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "some_other_name",
+        "name": "some_other_name",
+        "fields": [{"type": "long", "name": "c1"}],
+    }
