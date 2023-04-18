@@ -43,6 +43,7 @@ class AvroBase(BaseModel):
             f = value.get("format")
             r = value.get("$ref")
             a = value.get("additionalProperties")
+            u = value.get("anyOf")
             avro_type_dict: Dict[str, Any] = {}
             if "default" in value:
                 avro_type_dict["default"] = value.get("default")
@@ -50,7 +51,11 @@ class AvroBase(BaseModel):
                 avro_type_dict["doc"] = value.get("description")
             if "allOf" in value and len(value["allOf"]) == 1:
                 r = value["allOf"][0]["$ref"]
-            if r is not None:
+            if u is not None:
+                avro_type_dict["type"] = []
+                for union_element in u:
+                    avro_type_dict["type"].append(get_type(union_element)["type"])
+            elif r is not None:
                 class_name = r.replace("#/definitions/", "")
                 if class_name in classes_seen:
                     avro_type_dict["type"] = class_name
@@ -70,6 +75,7 @@ class AvroBase(BaseModel):
                             # Because of this the path in the schema is tracked and used as name for a nested struct/array
                             "name": class_name,
                         }
+
                     classes_seen.add(class_name)
             elif t == "array":
                 items = value.get("items")
@@ -141,7 +147,9 @@ class AvroBase(BaseModel):
                 avro_type_dict["name"] = key
 
                 if key not in required:
-                    if avro_type_dict.get("default") is None:
+                    if type(avro_type_dict["type"]) is list:
+                        avro_type_dict["type"].insert(0, "null")
+                    elif avro_type_dict.get("default") is None:
                         avro_type_dict["type"] = ["null", avro_type_dict["type"]]
                         avro_type_dict["default"] = None
 
