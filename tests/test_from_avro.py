@@ -248,9 +248,18 @@ def test_unions():
                             "fields": [{"name": "values", "type": {"type": "map", "values": "string"}}],
                         },
                     ],
-                }
+                },
+                {
+                    "name": "b_union",
+                    "type": [
+                        "long",
+                        "string",
+                        "ARecord",
+                    ],
+                },
             ],
         }
     )
 
-    assert "a_union: Union[None,int,str,ARecord]" in pydantic_code
+    assert "a_union: Optional[Union[int,str,ARecord]]" in pydantic_code
+    assert "b_union: Union[int,str,ARecord]" in pydantic_code

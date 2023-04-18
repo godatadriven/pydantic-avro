@@ -38,7 +38,10 @@ def avsc_to_pydantic(schema: dict) -> str:
                 c.remove("null")
                 py_type = get_python_type(c[0])
             else:
-                py_type = f"Union[{','.join([ 'None' if e == 'null' else get_python_type(e) for e in t])}]"
+                if "null" in t:
+                    py_type = f"Optional[Union[{','.join([ get_python_type(e) for e in t if e != 'null'])}]]"
+                else:
+                    py_type = f"Union[{','.join([ get_python_type(e) for e in t])}]"
         elif t.get("logicalType") == "uuid":
             py_type = "UUID"
         elif t.get("logicalType") == "decimal":

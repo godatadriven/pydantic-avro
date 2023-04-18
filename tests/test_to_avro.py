@@ -79,7 +79,9 @@ class ModelWithAliases(AvroBase):
 
 
 class ModelWithUnion(AvroBase):
-    field: Union[None, str, int, NestedModel]
+    c1: Union[None, str, int, NestedModel]
+    c2: Optional[Union[str, int, NestedModel]]
+    c3: Union[str, int, NestedModel]
 
 
 def test_avro():
@@ -322,7 +324,7 @@ def test_union_avro():
     assert result == {
         "fields": [
             {
-                "name": "field",
+                "name": "c1",
                 "type": [
                     "null",
                     "string",
@@ -342,7 +344,24 @@ def test_union_avro():
                         "type": "record",
                     },
                 ],
-            }
+            },
+            {
+                "name": "c2",
+                "type": [
+                    "null",
+                    "string",
+                    "long",
+                    "NestedModel",
+                ],
+            },
+            {
+                "name": "c3",
+                "type": [
+                    "string",
+                    "long",
+                    "NestedModel",
+                ],
+            },
         ],
         "name": "ModelWithUnion",
         "namespace": "ModelWithUnion",
@@ -351,7 +370,7 @@ def test_union_avro():
 
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 1
+    assert len(schema.fields) == 3
 
 
 class OptionalArray(AvroBase):
