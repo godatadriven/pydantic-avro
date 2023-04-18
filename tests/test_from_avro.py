@@ -25,7 +25,7 @@ def test_avsc_to_pydantic_primitive():
     assert (
         "class Test(BaseModel):\n"
         "    col1: str\n"
-        "    col2: int\n"
+        "    col2: int = Field(..., ge=-2**31, le=(2**31 - 1))\n"
         "    col3: int\n"
         "    col4: float\n"
         "    col5: float\n"
@@ -263,3 +263,20 @@ def test_unions():
 
     assert "a_union: Optional[Union[int,str,ARecord]]" in pydantic_code
     assert "b_union: Union[int,str,ARecord]" in pydantic_code
+
+
+def test_int():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "type": "record",
+            "name": "Test",
+            "fields": [
+                {
+                    "name": "c1",
+                    "type": "int",
+                },
+            ],
+        }
+    )
+
+    assert "c1: int = Field(..., ge=-2**31, le=(2**31 - 1))" in pydantic_code

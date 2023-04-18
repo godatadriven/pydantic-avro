@@ -19,7 +19,9 @@ def avsc_to_pydantic(schema: dict) -> str:
         if isinstance(t, str):
             if t == "string":
                 py_type = "str"
-            elif t == "long" or t == "int":
+            elif t == "int":
+                py_type = "int"
+            elif t == "long":
                 py_type = "int"
             elif t == "boolean":
                 py_type = "bool"
@@ -90,7 +92,13 @@ def avsc_to_pydantic(schema: dict) -> str:
             n = field["name"]
             t = get_python_type(field["type"])
             default = field.get("default")
-            if "default" not in field:
+            if field["type"] == "int" and "default" in field and isinstance(default, (bool, type(None))):
+                current += f"    {n}: {t} = Field({default}, ge=-2**31, le=(2**31 - 1))\n"
+            elif field["type"] == "int" and "default" in field:
+                current += f"    {n}: {t} = Field({json.dumps(default)}, ge=-2**31, le=(2**31 - 1))\n"
+            elif field["type"] == "int":
+                current += f"    {n}: {t} = Field(..., ge=-2**31, le=(2**31 - 1))\n"
+            elif "default" not in field:
                 current += f"    {n}: {t}\n"
             elif isinstance(default, (bool, type(None))):
                 current += f"    {n}: {t} = {default}\n"
@@ -110,7 +118,7 @@ from enum import Enum
 from typing import List, Optional, Dict, Union
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 """

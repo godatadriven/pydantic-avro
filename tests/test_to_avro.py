@@ -386,3 +386,17 @@ def test_optional_array():
         "name": "OptionalArray",
         "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
     }
+
+
+class IntModel(AvroBase):
+    c1: int = Field(..., ge=-(2**31), le=(2**31 - 1))
+
+
+def test_int():
+    result = IntModel.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "IntModel",
+        "name": "IntModel",
+        "fields": [{"type": "int", "name": "c1"}],
+    }
