@@ -47,6 +47,7 @@ class TestModel(AvroBase):
     c11: Dict[str, str]
     c12: dict
     c13: Status = Field(..., description="This is Status")
+    c14: bytes
 
 
 
@@ -112,11 +113,12 @@ def test_avro():
                 "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
                 "doc": "This is Status",
             },
+            {"name": "c14", "type": "bytes"},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 13
+    assert len(schema.fields) == 14
 
 
 def test_avro_write():
@@ -134,6 +136,7 @@ def test_avro_write():
         c11={"key": "value"},
         c12={},
         c13=Status.passed,
+        c14=bytes(),
     )
 
     parsed_schema = parse_schema(TestModel.avro_schema())
@@ -323,6 +326,7 @@ def test_model_with_alias():
         ],
     }
 
+
 def test_union_avro():
     result = ModelWithUnion.avro_schema()
     assert result == {
@@ -363,3 +367,18 @@ def test_union_avro():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 1
+
+
+class OptionalArray(AvroBase):
+    c1: Optional[List[str]]
+
+
+def test_optional_array():
+    result = OptionalArray.avro_schema()
+
+    assert result == {
+        "type": "record",
+        "namespace": "OptionalArray",
+        "name": "OptionalArray",
+        "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
+    }

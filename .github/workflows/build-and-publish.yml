@@ -1,0 +1,72 @@
+name: Build and Publish
+on:
+  workflow_dispatch: # Only manual trigger and only for the main branch
+    branches:
+      - main
+    inputs:
+      bump_level:
+        type: choice
+        description: Select bump level
+        required: true
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GIT_TOKEN }}
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 - --version 1.2.2
+
+    - name: Build and publish
+      run: |
+        set -eu
+        
+        BUMP_LEVEL=${{ github.event.inputs.bump_level }}
+        echo "bump level: ${BUMP_LEVEL}"
+        git config --local user.email "Bumpversion"
+        git config --local user.name "Bumpversion"
+
+        # Version bump
+
+        NEW_VERSION=$(poetry version -s ${BUMP_LEVEL})
+        echo ${NEW_VERSION}
+        git add pyproject.toml poetry.lock
+        git commit -m "Bump version to ${NEW_VERSION}"
+        git tag "v${NEW_VERSION}"
+
+        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+        poetry publish --build
+
+        git push
+        git push --tags
+        
+        echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: v${{ env.NEW_VERSION }}
+        release_name: v${{ env.NEW_VERSION }}
+        body: |
+          pypi package: https://pypi.org/project/pydantic-avro/${{ env.NEW_VERSION }}/
+        draft: false
+        prerelease: false

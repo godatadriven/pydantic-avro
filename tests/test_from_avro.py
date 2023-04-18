@@ -18,6 +18,7 @@ def test_avsc_to_pydantic_primitive():
                 {"name": "col4", "type": "double"},
                 {"name": "col5", "type": "float"},
                 {"name": "col6", "type": "boolean"},
+                {"name": "col7", "type": "bytes"},
             ],
         }
     )
@@ -28,7 +29,8 @@ def test_avsc_to_pydantic_primitive():
         "    col3: int\n"
         "    col4: float\n"
         "    col5: float\n"
-        "    col6: bool" in pydantic_code
+        "    col6: bool\n"
+        "    col7: bytes" in pydantic_code
     )
 
 

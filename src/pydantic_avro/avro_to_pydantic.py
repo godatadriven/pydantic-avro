@@ -25,6 +25,8 @@ def avsc_to_pydantic(schema: dict) -> str:
                 py_type = "bool"
             elif t == "double" or t == "float":
                 py_type = "float"
+            elif t == "bytes":
+                py_type = "bytes"
             elif t in classes:
                 py_type = t
             else:
