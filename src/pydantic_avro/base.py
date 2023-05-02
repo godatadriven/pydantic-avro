@@ -7,7 +7,9 @@ class AvroBase(BaseModel):
     """This is base pydantic class that will add some methods"""
 
     @classmethod
-    def avro_schema(cls, by_alias: bool = True, namespace: Optional[str] = None) -> dict:
+    def avro_schema(
+        cls, by_alias: bool = True, namespace: Optional[str] = None
+    ) -> dict:
         """
         Return the avro schema for the pydantic class
 
@@ -121,7 +123,12 @@ class AvroBase(BaseModel):
                 avro_type_dict["type"] = "double"
             elif t == "integer":
                 # integer in python can be a long, only if minimum and maximum value is set a int can be used
-                if minimum is not None and minimum >= -(2**31) and maximum is not None and maximum <= (2**31 - 1):
+                if (
+                    minimum is not None
+                    and minimum >= -(2**31)
+                    and maximum is not None
+                    and maximum <= (2**31 - 1)
+                ):
                     avro_type_dict["type"] = "int"
                 else:
                     avro_type_dict["type"] = "long"
@@ -163,4 +170,9 @@ class AvroBase(BaseModel):
 
         fields = get_fields(schema)
 
-        return {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        return {
+            "type": "record",
+            "namespace": namespace,
+            "name": schema["title"],
+            "fields": fields,
+        }

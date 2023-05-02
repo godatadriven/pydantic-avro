@@ -99,7 +99,11 @@ def test_avro():
             {"name": "c6", "type": {"type": "long", "logicalType": "time-micros"}},
             {"name": "c7", "type": ["null", "string"], "default": None},
             {"name": "c8", "type": "boolean"},
-            {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}, "doc": "This is UUID"},
+            {
+                "name": "c9",
+                "type": {"type": "string", "logicalType": "uuid"},
+                "doc": "This is UUID",
+            },
             {
                 "name": "c10",
                 "type": ["null", {"type": "string", "logicalType": "uuid"}],
@@ -110,7 +114,11 @@ def test_avro():
             {"name": "c12", "type": {"type": "map", "values": "string"}},
             {
                 "name": "c13",
-                "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                "type": {
+                    "type": "enum",
+                    "symbols": ["passed", "failed"],
+                    "name": "Status",
+                },
                 "doc": "This is Status",
             },
             {"name": "c14", "type": "bytes"},
@@ -168,7 +176,11 @@ def test_reused_object():
         "fields": [
             {
                 "name": "c1",
-                "type": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+                "type": {
+                    "fields": [{"name": "c111", "type": "string"}],
+                    "name": "Nested2Model",
+                    "type": "record",
+                },
             },
             {"name": "c2", "type": "Nested2Model"},
         ],
@@ -187,7 +199,11 @@ def test_reused_object_array():
             {
                 "name": "c1",
                 "type": {
-                    "items": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+                    "items": {
+                        "fields": [{"name": "c111", "type": "string"}],
+                        "name": "Nested2Model",
+                        "type": "record",
+                    },
                     "type": "array",
                 },
             },
@@ -231,7 +247,13 @@ def test_complex_avro():
                     "type": "array",
                 },
             },
-            {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
+            {
+                "name": "c4",
+                "type": {
+                    "items": {"logicalType": "timestamp-micros", "type": "long"},
+                    "type": "array",
+                },
+            },
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
             {"name": "c6", "type": ["null", "string", "long", "NestedModel"]},
         ],
@@ -384,7 +406,13 @@ def test_optional_array():
         "type": "record",
         "namespace": "OptionalArray",
         "name": "OptionalArray",
-        "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
+        "fields": [
+            {
+                "type": ["null", {"type": "array", "items": {"type": "string"}}],
+                "name": "c1",
+                "default": None,
+            }
+        ],
     }
 
 

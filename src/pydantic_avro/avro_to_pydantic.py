@@ -32,7 +32,7 @@ def avsc_to_pydantic(schema: dict) -> str:
             elif t in classes:
                 py_type = t
             else:
-                t_without_namespace = t.split('.')[-1]
+                t_without_namespace = t.split(".")[-1]
                 if t_without_namespace in classes:
                     py_type = t_without_namespace
                 else:
@@ -52,9 +52,15 @@ def avsc_to_pydantic(schema: dict) -> str:
             py_type = "UUID"
         elif t.get("logicalType") == "decimal":
             py_type = "Decimal"
-        elif t.get("logicalType") == "timestamp-millis" or t.get("logicalType") == "timestamp-micros":
+        elif (
+            t.get("logicalType") == "timestamp-millis"
+            or t.get("logicalType") == "timestamp-micros"
+        ):
             py_type = "datetime"
-        elif t.get("logicalType") == "time-millis" or t.get("logicalType") == "time-micros":
+        elif (
+            t.get("logicalType") == "time-millis"
+            or t.get("logicalType") == "time-micros"
+        ):
             py_type = "time"
         elif t.get("logicalType") == "date":
             py_type = "date"
@@ -96,8 +102,14 @@ def avsc_to_pydantic(schema: dict) -> str:
             n = field["name"]
             t = get_python_type(field["type"])
             default = field.get("default")
-            if field["type"] == "int" and "default" in field and isinstance(default, (bool, type(None))):
-                current += f"    {n}: {t} = Field({default}, ge=-2**31, le=(2**31 - 1))\n"
+            if (
+                field["type"] == "int"
+                and "default" in field
+                and isinstance(default, (bool, type(None)))
+            ):
+                current += (
+                    f"    {n}: {t} = Field({default}, ge=-2**31, le=(2**31 - 1))\n"
+                )
             elif field["type"] == "int" and "default" in field:
                 current += f"    {n}: {t} = Field({json.dumps(default)}, ge=-2**31, le=(2**31 - 1))\n"
             elif field["type"] == "int":
