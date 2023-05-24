@@ -21,7 +21,7 @@ python = ">=3.7,<4.0"
 pydantic = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
-coverage= {version=  "^7.2.2", extras=["toml"]}
+coverage= {version=  "^7.2.6", extras=["toml"]}
 pytest= "^7.2.2"
 pytest-mock="^3.10.0"
 pyproject-flake8 ="^5.0.4"
