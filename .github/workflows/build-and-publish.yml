@@ -19,12 +19,13 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-
+    env:
+      GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
@@ -61,8 +62,6 @@ jobs:
 
     - name: Create Release
       uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
         tag_name: v${{ env.NEW_VERSION }}
         release_name: v${{ env.NEW_VERSION }}
