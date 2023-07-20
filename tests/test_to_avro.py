@@ -49,6 +49,12 @@ class TestModel(AvroBase):
     c14: bytes
 
 
+class ListofLists(AvroBase):
+    c1: int
+    c2: List[int]
+    c3: List[List[int]]
+
+
 class ComplexTestModel(AvroBase):
     c1: List[str]
     c2: NestedModel
@@ -240,6 +246,29 @@ def test_complex_avro():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 6
+
+
+def test_avro_parse_list_of_lists():
+    record = ListofLists(c1=1, c2=[2, 3], c3=[[4, 5], [6, 7]])
+
+    schema = ListofLists.avro_schema()
+    parsed_schema = parse_schema(schema)
+
+    records = [
+        record.dict(),
+    ]
+
+    with tempfile.TemporaryDirectory() as dir:
+        # Writing
+        with open(os.path.join(dir, "test.avro"), "wb") as out:
+            writer(out, parsed_schema, records)
+
+        result_records = []
+        # Reading
+        with open(os.path.join(dir, "test.avro"), "rb") as fo:
+            for record in reader(fo):
+                result_records.append(ListofLists.parse_obj(record))
+    assert records == result_records
 
 
 def test_avro_write_complex():
