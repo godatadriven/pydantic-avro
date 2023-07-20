@@ -62,7 +62,6 @@ class ComplexTestModel(AvroBase):
     c4: List[datetime]
     c5: Dict[str, NestedModel]
     c6: Union[None, str, int, NestedModel]
-    c7: List[List[int]] = []
 
 
 class ReusedObject(AvroBase):
