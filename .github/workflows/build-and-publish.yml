@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GIT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
