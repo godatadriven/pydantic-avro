@@ -1,3 +1,4 @@
+from inspect import cleandoc
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
@@ -23,8 +24,8 @@ class AvroBase(BaseModel):
 
         return cls._avro_schema(schema, namespace)
 
-    @staticmethod
-    def _avro_schema(schema: dict, namespace: str) -> dict:
+    @classmethod
+    def _avro_schema(cls, schema: dict, namespace: str) -> dict:
         """Return the avro schema for the given pydantic schema"""
 
         classes_seen = set()
@@ -171,4 +172,10 @@ class AvroBase(BaseModel):
 
         fields = get_fields(schema)
 
-        return {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        avro_schema_dict = {}
+        if cls.__doc__:
+            avro_schema_dict["doc"] = cleandoc(cls.__doc__)
+
+        avro_schema_dict.update({"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields})
+
+        return avro_schema_dict

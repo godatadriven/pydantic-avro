@@ -446,3 +446,23 @@ def test_custom_name():
         "name": "some_other_name",
         "fields": [{"type": "long", "name": "c1"}],
     }
+
+
+class ModelWithDocString(AvroBase):
+    """
+    model with docstring!
+    model with multiple line docstring!
+    """
+
+    c1: int
+
+
+def test_record_doc():
+    result = ModelWithDocString.avro_schema()
+    assert result == {
+        "doc": "model with docstring!\nmodel with multiple line docstring!",
+        "type": "record",
+        "namespace": "ModelWithDocString",
+        "name": "ModelWithDocString",
+        "fields": [{"type": "long", "name": "c1"}],
+    }
