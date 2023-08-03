@@ -55,7 +55,7 @@ jobs:
         poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
         poetry publish --build
 
-        git push
-        git push --tags
+        git push -f  
+        git push --tags -f
         
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
