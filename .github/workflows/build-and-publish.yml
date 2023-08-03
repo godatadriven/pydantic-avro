@@ -35,8 +35,10 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 - --version 1.2.2
 
     - name: Build and publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
       run: |
-        set -eu
+        set -euv
         
         BUMP_LEVEL=${{ github.event.inputs.bump_level }}
         echo "bump level: ${BUMP_LEVEL}"
@@ -62,7 +64,7 @@ jobs:
     - name: Create Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
       with:
         tag_name: v${{ env.NEW_VERSION }}
         release_name: v${{ env.NEW_VERSION }}
