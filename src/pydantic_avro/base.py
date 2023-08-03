@@ -2,6 +2,11 @@ from inspect import cleandoc
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
+from pydantic.version import VERSION as PYDANTIC_VERSION
+
+PYDANTIC_V2 = PYDANTIC_VERSION.startswith("2.")
+
+DEFS_NAME = "$defs" if PYDANTIC_V2 else "definitions"
 
 
 class AvroBase(BaseModel):
@@ -16,7 +21,7 @@ class AvroBase(BaseModel):
         :param namespace: Provide an optional namespace string to use in schema generation
         :return: dict with the Avro Schema for the model
         """
-        schema = cls.schema(by_alias=by_alias)
+        schema = cls.model_json_schema(by_alias=by_alias) if PYDANTIC_V2 else cls.schema(by_alias=by_alias)
 
         if namespace is None:
             # default namespace will be based on title
@@ -32,8 +37,8 @@ class AvroBase(BaseModel):
 
         def get_definition(ref: str, schema: dict):
             """Reading definition of base schema for nested structs"""
-            id = ref.replace("#/definitions/", "")
-            d = schema.get("definitions", {}).get(id)
+            id = ref.replace(f"#/{DEFS_NAME}/", "")
+            d = schema.get(DEFS_NAME, {}).get(id)
             if d is None:
                 raise RuntimeError(f"Definition {id} does not exist")
             return d
@@ -59,7 +64,7 @@ class AvroBase(BaseModel):
                 for union_element in u:
                     avro_type_dict["type"].append(get_type(union_element)["type"])
             elif r is not None:
-                class_name = r.replace("#/definitions/", "")
+                class_name = r.replace(f"#/{DEFS_NAME}/", "")
                 if class_name in classes_seen:
                     avro_type_dict["type"] = class_name
                 else:
@@ -136,6 +141,8 @@ class AvroBase(BaseModel):
                     avro_type_dict["type"] = "long"
             elif t == "boolean":
                 avro_type_dict["type"] = "boolean"
+            elif t == "null":
+                avro_type_dict["type"] = "null"
             elif t == "object":
                 if a is None:
                     value_type = "string"
@@ -162,10 +169,16 @@ class AvroBase(BaseModel):
 
                 if key not in required:
                     if type(avro_type_dict["type"]) is list:
-                        avro_type_dict["type"].insert(0, "null")
+                        if "null" not in avro_type_dict["type"]:
+                            avro_type_dict["type"].insert(0, "null")
                     elif avro_type_dict.get("default") is None:
                         avro_type_dict["type"] = ["null", avro_type_dict["type"]]
-                        avro_type_dict["default"] = None
+                    avro_type_dict.setdefault("default", None)
+
+                # null must be the first element in the list
+                if type(avro_type_dict["type"]) is list and "null" in avro_type_dict["type"]:
+                    avro_type_dict["type"].remove("null")
+                    avro_type_dict["type"].insert(0, "null")
 
                 fields.append(avro_type_dict)
             return fields
