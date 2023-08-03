@@ -36,7 +36,7 @@ jobs:
 
     - name: Build and publish
       env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.BUMPVERSION_PAT_TOKEN }}
       run: |
         set -euv
         
