@@ -52,10 +52,10 @@ jobs:
         git commit -m "Bump version to ${NEW_VERSION}"
         git tag "v${NEW_VERSION}"
 
-        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-        poetry publish --build
-
         git push -f  
         git push --tags -f
+        
+        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+        poetry publish --build
         
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
