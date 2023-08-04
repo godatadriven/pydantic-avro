@@ -36,8 +36,6 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 - --version 1.2.2
 
     - name: Build and publish
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
       run: |
         set -euv
         
