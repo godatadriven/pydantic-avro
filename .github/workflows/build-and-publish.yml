@@ -2,16 +2,16 @@ name: Build and Publish
 on:
   workflow_dispatch: # Only manual trigger and only for the main branch
     branches:
-      - main
+    - main
     inputs:
       bump_level:
         type: choice
         description: Select bump level
         required: true
         options:
-          - patch
-          - minor
-          - major
+        - patch
+        - minor
+        - major
 
 permissions:
   contents: write
@@ -22,7 +22,9 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GIT_TOKEN_TIM }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
@@ -59,3 +61,15 @@ jobs:
         poetry publish --build
         
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.NEW_VERSION }}
+        release_name: v${{ env.NEW_VERSION }}
+        body: |
+          pypi package: https://pypi.org/project/pydantic-avro/${{ env.NEW_VERSION }}/
+        draft: false
+        prerelease: false
