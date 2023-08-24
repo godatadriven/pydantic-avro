@@ -127,6 +127,15 @@ from pydantic import BaseModel, Field
     return file_content
 
 
+def model_factory(avsc_path: str):
+    with open(avsc_path, "r") as fh:
+        avsc_dict = json.load(fh)
+    code = avsc_to_pydantic(avsc_dict)
+    filename = f"{schema_name.rstrip('.avsc').replace('.', '__')}.py"
+    module = eval(compile(code, filename=filename, mode='eval'))
+    return getattr(module, filename)
+
+
 def convert_file(avsc_path: str, output_path: Optional[str] = None):
     with open(avsc_path, "r") as fh:
         avsc_dict = json.load(fh)
