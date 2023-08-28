@@ -87,6 +87,9 @@ def avsc_to_pydantic(schema: dict) -> str:
         """Convert a single avro record type to a pydantic class"""
         name = schema["name"]
         current = f"class {name}(BaseModel):\n"
+        doc = schema.get("doc")
+        if doc:
+            current += f'    """{doc}"""\n'
 
         for field in schema["fields"]:
             n = field["name"]
