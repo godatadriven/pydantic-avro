@@ -281,6 +281,7 @@ def test_int():
 
     assert "c1: int = Field(..., ge=-2**31, le=(2**31 - 1))" in pydantic_code
 
+
 def test_doc():
     pydantic_code = avsc_to_pydantic(
         {
