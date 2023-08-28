@@ -184,8 +184,8 @@ class AvroBase(BaseModel):
 
         fields = get_fields(schema)
 
-        doc = schema.get("description")
-        if doc:
-            return {"type": "record", "namespace": namespace, "name": schema["title"], "doc": doc, "fields": fields}
+        output_avro_schema = {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        if cls.__doc__:
+            output_avro_schema["doc"] = schema["description"]
 
-        return {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        return output_avro_schema
