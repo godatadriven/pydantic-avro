@@ -12,7 +12,7 @@ class AvroBase(BaseModel):
     """This is base pydantic class that will add some methods"""
 
     @classmethod
-    def avro_schema(cls, by_alias: bool = True, namespace: Optional[str] = None) -> dict:
+    def avro_schema(cls, by_alias: bool = True, namespace: Optional[str] = None) -> dict[str, Any]:
         """
         Return the avro schema for the pydantic class
 
@@ -29,7 +29,7 @@ class AvroBase(BaseModel):
         return cls._avro_schema(schema, namespace)
 
     @staticmethod
-    def _avro_schema(schema: dict, namespace: str) -> dict:
+    def _avro_schema(schema: dict, namespace: str) -> dict[str, Any]:
         """Return the avro schema for the given pydantic schema"""
 
         classes_seen = set()
