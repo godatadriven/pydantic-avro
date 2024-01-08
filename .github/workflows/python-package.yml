@@ -8,9 +8,9 @@ permissions:
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         pydantic-version: ["pydantic-v1", "pydantic-v2"]
 
     steps:
@@ -46,7 +46,7 @@ jobs:
         uses: mikepenz/action-junit-report@v3
         if: always() # always run even if the previous step fails
         with:
-          report_paths: 'junit/report.xml'
+          report_paths: "junit/report.xml"
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
