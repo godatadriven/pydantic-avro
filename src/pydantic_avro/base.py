@@ -151,6 +151,9 @@ class AvroBase(BaseModel):
                     value_type = value_type.get("type")
                 avro_type_dict["type"] = {"type": "map", "values": value_type}
             else:
+                if t is None:
+                    raise ValueError(f"Field '{value}' does not have a defined type.")
+
                 raise NotImplementedError(
                     f"Type '{t}' not support yet, "
                     f"please report this at https://github.com/godatadriven/pydantic-avro/issues"
