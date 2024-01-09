@@ -32,7 +32,11 @@ def avsc_to_pydantic(schema: dict) -> str:
             elif t in classes:
                 py_type = t
             else:
-                raise NotImplementedError(f"Type {t} not supported yet")
+                t_without_namespace = t.split('.')[-1]
+                if t_without_namespace in classes:
+                    py_type = t_without_namespace
+                else:
+                    raise NotImplementedError(f"Type {t} not supported yet")
         elif isinstance(t, list):
             if "null" in t and len(t) == 2:
                 optional = True

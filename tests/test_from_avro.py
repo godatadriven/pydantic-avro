@@ -68,6 +68,39 @@ def test_avsc_to_pydantic_map_nested_object():
     assert "class Nested(BaseModel):\n" "    col1: str" in pydantic_code
 
 
+def test_avsc_to_pydantic_namespaced_object_reuse():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "col1",
+                    "type": {
+                        "type": "record",
+                        "name": "Nested",
+                        "namespace": "com.pydantic",
+                        "fields": [{"name": "col1", "type": "string"}]},
+                },
+                {
+                    "name": "col2",
+                    "type": "com.pydantic.Nested",
+                },
+            ],
+        }
+    )
+    expected_code: str = """
+class Nested(BaseModel):
+    col1: str
+
+
+class Test(BaseModel):
+    col1: Nested
+    col2: Nested
+"""
+    assert expected_code in pydantic_code
+
+
 def test_avsc_to_pydantic_map_nested_array():
     pydantic_code = avsc_to_pydantic(
         {
