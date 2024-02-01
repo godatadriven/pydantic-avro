@@ -187,4 +187,11 @@ class AvroBase(BaseModel):
 
         fields = get_fields(schema)
 
-        return {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        output_avro_schema = {"type": "record", "namespace": namespace, "name": schema["title"], "fields": fields}
+        if cls.__doc__:
+            doc = schema["description"]
+            # take only the main part of the docstring to avoid excessive doc length.
+            split = doc.find("\n\n")
+            output_avro_schema["doc"] = dic[:split] if split != -1 else doc
+
+        return output_avro_schema

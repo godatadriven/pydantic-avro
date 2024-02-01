@@ -460,3 +460,19 @@ def test_custom_name():
         "name": "some_other_name",
         "fields": [{"type": "long", "name": "c1"}],
     }
+
+
+class CustomDocModel(AvroBase):
+    """Custom Doc Model"""
+    c1: int
+
+
+def test_doc_description():
+    result = CustomDocModel.avro_schema()
+    assert result == {
+        "type": "record",
+        "namespace": "CustomDocModel"
+        "name": "CustomDocModel",
+        "doc": "Custom Doc Model",
+        "fields": [{"type": "int", "name": "c1"}]
+    }
