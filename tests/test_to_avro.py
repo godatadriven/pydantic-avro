@@ -350,7 +350,6 @@ def test_complex_nested_avro():
     parse_schema(result)
 
 
-
 def test_avro_parse_list_of_lists():
     record1 = ListofLists(c1=1, c2=[2, 3], c3=[[4, 5], [6, 7]])
 
