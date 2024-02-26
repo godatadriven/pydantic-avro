@@ -90,21 +90,12 @@ class AvroBase(BaseModel):
                 # If items in array are a object:
                 if "$ref" in items:
                     tn = tn["type"]
-                # If items in array are a logicalType
+                # Necessary to handle things like logical types, list of lists, and list with union
                 if (
                     isinstance(tn, dict)
-                    and isinstance(tn.get("type", {}), dict)
-                    and tn.get("type", {}).get("logicalType") is not None
+                    and isinstance(tn.get("type", None), (dict, list))
                 ):
                     tn = tn["type"]
-                # If items in array are an array, the structure must be corrected
-                if (
-                    isinstance(tn, dict)
-                    and isinstance(tn.get("type", {}), dict)
-                    and tn.get("type", {}).get("type") == "array"
-                ):
-                    items = tn["type"]["items"]
-                    tn = {"type": "array", "items": items}
                 avro_type_dict["type"] = {"type": "array", "items": tn}
             elif t == "string" and f == "date-time":
                 avro_type_dict["type"] = {

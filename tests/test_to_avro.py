@@ -65,6 +65,15 @@ class ListofLists(AvroBase):
     c3: List[List[int]]
 
 
+AllBasicTypes = str | int | float | bool | None
+LeafForNestedType = list[AllBasicTypes] | dict[str, AllBasicTypes]
+RootNestedType = dict[str, AllBasicTypes | LeafForNestedType] | list[AllBasicTypes | LeafForNestedType]
+
+
+class ComplexNestedTestModel(AvroBase):
+    c1: RootNestedType
+
+
 class ComplexTestModel(AvroBase):
     c1: List[str]
     c2: NestedModel
@@ -255,6 +264,91 @@ def test_complex_avro():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 6
+
+
+def test_complex_nested_avro():
+    result = ComplexNestedTestModel.avro_schema()
+    pprint(result)
+    assert result == {
+        'type': 'record',
+        'name': 'ComplexNestedTestModel',
+        'namespace': 'ComplexNestedTestModel',
+        'fields': [
+            {
+                'name': 'c1',
+                'type': [
+                    {
+                        'type': 'map',
+                        'values': [
+                            'string',
+                            'long',
+                            'double',
+                            'boolean',
+                            {
+                                'items': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ],
+                                'type': 'array'
+                            },
+                            {
+                                'type': 'map',
+                                'values': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ]
+                            },
+                            'null'
+                        ]
+                    },
+                    {
+                        'items': [
+                            'string',
+                            'long',
+                            'double',
+                            'boolean',
+                            {
+                                'items': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ],
+                                'type': 'array'
+                            },
+                            {
+                                'type': 'map',
+                                'values': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ]
+                            },
+                            'null'
+                        ],
+                        'type': 'array'
+                    }
+                ]
+            },
+        ]
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 1
+
+    # Also test parsing with fast avro
+    parse_schema(result)
+
 
 
 def test_avro_parse_list_of_lists():
