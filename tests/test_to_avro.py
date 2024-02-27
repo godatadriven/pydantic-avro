@@ -266,15 +266,16 @@ def test_complex_avro():
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
             {"name": "c6", "type": ["null", "string", "long", "NestedModel"], "default": None},
-            {'name': 'c7',
-             'type': {
-                 'items': {
-                     'items': ['long', 'double'],
-                     'type': 'array'
-                 },
-                 'type': 'array'
+            {
+                'name': 'c7',
+                'type': {
+                    'items': {
+                        'items': ['long', 'double'],
+                        'type': 'array'
+                    },
+                    'type': 'array'
                 }
-             },
+            },
         ],
     }
 
@@ -362,6 +363,66 @@ def test_complex_nested_avro():
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
     assert len(schema.fields) == 1
+
+    # Also test parsing with fast avro
+    parse_schema(result)
+
+
+def test_tuple_avro():
+    result = TupleTestModel.avro_schema()
+    pprint(result)
+    assert result == {
+      "fields": [
+        {
+          "name": "c1",
+          "type": {
+            "items": ["long"],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c2",
+          "type": {
+            "items": ["double"],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c3",
+          "type": {
+            "items": [
+              {
+                "name": "Status",
+                "symbols": ["passed", "failed"],
+                "type": "enum"
+              },
+              "Status"
+            ],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c4",
+          "type": {
+            "items": [
+              {
+                "type": "map",
+                "values": "string"
+              },
+              "Status"
+            ],
+            "type": "array"
+          }
+        }
+      ],
+      "name": "TupleTestModel",
+      "namespace": "TupleTestModel",
+      "type": "record"
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 4
 
     # Also test parsing with fast avro
     parse_schema(result)
@@ -539,7 +600,7 @@ def test_optional_array():
 
 
 class IntModel(AvroBase):
-    c1: int = Field(..., ge=-(2**31), le=(2**31 - 1))
+    c1: int = Field(..., ge=-(2 ** 31), le=(2 ** 31 - 1))
 
 
 def test_int():
