@@ -5,7 +5,7 @@ import tempfile
 import uuid
 from datetime import date, datetime, time, timezone
 from pprint import pprint
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Type, Union, Tuple
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -74,6 +74,13 @@ class ComplexNestedTestModel(AvroBase):
     c1: RootNestedType
 
 
+class TupleTestModel(AvroBase):
+    c1: tuple[int]
+    c2: tuple[float, float]
+    c3: tuple[Status, Status]
+    c4: tuple[dict[str, str] | Status]
+
+
 class ComplexTestModel(AvroBase):
     c1: List[str]
     c2: NestedModel
@@ -81,6 +88,7 @@ class ComplexTestModel(AvroBase):
     c4: List[datetime]
     c5: Dict[str, NestedModel]
     c6: Union[None, str, int, NestedModel] = None
+    c7: List[Tuple[Union[int, float], Union[int, float]]]
 
 
 class ReusedObject(AvroBase):
@@ -258,12 +266,21 @@ def test_complex_avro():
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
             {"name": "c6", "type": ["null", "string", "long", "NestedModel"], "default": None},
+            {'name': 'c7',
+             'type': {
+                 'items': {
+                     'items': ['long', 'double'],
+                     'type': 'array'
+                 },
+                 'type': 'array'
+                }
+             },
         ],
     }
 
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 6
+    assert len(schema.fields) == 7
 
 
 def test_complex_nested_avro():
@@ -378,6 +395,7 @@ def test_avro_write_complex():
         c3=[NestedModel(c11=Nested2Model(c111="test"))],
         c4=[1, 2, 3, 4],
         c5={"key": NestedModel(c11=Nested2Model(c111="test"))},
+        c7=[(1.0, 1)]
     )
 
     parsed_schema = parse_schema(ComplexTestModel.avro_schema())

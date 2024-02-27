@@ -84,12 +84,25 @@ class AvroBase(BaseModel):
                         }
 
                     classes_seen.add(class_name)
+            elif t == "array" and "prefixItems" in value:
+                # Handle tuple since it is considered an array
+                prefix_items = value.get("prefixItems")
+                possible_types = []
+                for prefix_item in prefix_items:
+                    item_type = get_type(prefix_item)["type"]
+                    if isinstance(item_type, list):
+                        possible_types.extend([x for x in item_type if x not in possible_types])
+                    elif item_type not in possible_types:
+                        possible_types.append(item_type)
+                avro_type_dict["type"] = {"type": "array", "items": possible_types}
             elif t == "array":
                 items = value.get("items")
                 tn = get_type(items)
-                # If items in array are a object:
+
+                # If items in array are an object:
                 if "$ref" in items:
                     tn = tn["type"]
+
                 # Necessary to handle things like logical types, list of lists, and list with union
                 if (
                     isinstance(tn, dict)
