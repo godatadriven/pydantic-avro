@@ -5,7 +5,7 @@ import tempfile
 import uuid
 from datetime import date, datetime, time, timezone
 from pprint import pprint
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Type, Union, Tuple
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -65,6 +65,22 @@ class ListofLists(AvroBase):
     c3: List[List[int]]
 
 
+AllBasicTypes = Union[str, int, float, bool, None]
+LeafForNestedType = Union[List[AllBasicTypes], Dict[str, AllBasicTypes]]
+RootNestedType = Union[Dict[str, Union[AllBasicTypes, LeafForNestedType]], List[Union[AllBasicTypes, LeafForNestedType]]]
+
+
+class ComplexNestedTestModel(AvroBase):
+    c1: RootNestedType
+
+
+class TupleTestModel(AvroBase):
+    c1: Tuple[int]
+    c2: Tuple[float, float]
+    c3: Tuple[Status, Status]
+    c4: Tuple[Union[Dict[str, str], Status]]
+
+
 class ComplexTestModel(AvroBase):
     c1: List[str]
     c2: NestedModel
@@ -72,6 +88,7 @@ class ComplexTestModel(AvroBase):
     c4: List[datetime]
     c5: Dict[str, NestedModel]
     c6: Union[None, str, int, NestedModel] = None
+    c7: List[Tuple[Union[int, float], Union[int, float]]]
 
 
 class ReusedObject(AvroBase):
@@ -249,12 +266,166 @@ def test_complex_avro():
             {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
             {"name": "c6", "type": ["null", "string", "long", "NestedModel"], "default": None},
+            {
+                'name': 'c7',
+                'type': {
+                    'items': {
+                        'items': ['long', 'double'],
+                        'type': 'array'
+                    },
+                    'type': 'array'
+                }
+            },
         ],
     }
 
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 6
+    assert len(schema.fields) == 7
+
+
+def test_complex_nested_avro():
+    result = ComplexNestedTestModel.avro_schema()
+    pprint(result)
+    assert result == {
+        'type': 'record',
+        'name': 'ComplexNestedTestModel',
+        'namespace': 'ComplexNestedTestModel',
+        'fields': [
+            {
+                'name': 'c1',
+                'type': [
+                    {
+                        'type': 'map',
+                        'values': [
+                            'string',
+                            'long',
+                            'double',
+                            'boolean',
+                            {
+                                'items': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ],
+                                'type': 'array'
+                            },
+                            {
+                                'type': 'map',
+                                'values': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ]
+                            },
+                            'null'
+                        ]
+                    },
+                    {
+                        'items': [
+                            'string',
+                            'long',
+                            'double',
+                            'boolean',
+                            {
+                                'items': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ],
+                                'type': 'array'
+                            },
+                            {
+                                'type': 'map',
+                                'values': [
+                                    'string',
+                                    'long',
+                                    'double',
+                                    'boolean',
+                                    'null'
+                                ]
+                            },
+                            'null'
+                        ],
+                        'type': 'array'
+                    }
+                ]
+            },
+        ]
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 1
+
+    # Also test parsing with fast avro
+    parse_schema(result)
+
+
+def test_tuple_avro():
+    result = TupleTestModel.avro_schema()
+    pprint(result)
+    assert result == {
+      "fields": [
+        {
+          "name": "c1",
+          "type": {
+            "items": ["long"],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c2",
+          "type": {
+            "items": ["double"],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c3",
+          "type": {
+            "items": [
+              {
+                "name": "Status",
+                "symbols": ["passed", "failed"],
+                "type": "enum"
+              },
+              "Status"
+            ],
+            "type": "array"
+          }
+        },
+        {
+          "name": "c4",
+          "type": {
+            "items": [
+              {
+                "type": "map",
+                "values": "string"
+              },
+              "Status"
+            ],
+            "type": "array"
+          }
+        }
+      ],
+      "name": "TupleTestModel",
+      "namespace": "TupleTestModel",
+      "type": "record"
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 4
+
+    # Also test parsing with fast avro
+    parse_schema(result)
 
 
 def test_avro_parse_list_of_lists():
@@ -285,6 +456,7 @@ def test_avro_write_complex():
         c3=[NestedModel(c11=Nested2Model(c111="test"))],
         c4=[1, 2, 3, 4],
         c5={"key": NestedModel(c11=Nested2Model(c111="test"))},
+        c7=[(1.0, 1)]
     )
 
     parsed_schema = parse_schema(ComplexTestModel.avro_schema())
@@ -428,7 +600,7 @@ def test_optional_array():
 
 
 class IntModel(AvroBase):
-    c1: int = Field(..., ge=-(2**31), le=(2**31 - 1))
+    c1: int = Field(..., ge=-(2 ** 31), le=(2 ** 31 - 1))
 
 
 def test_int():
