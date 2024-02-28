@@ -66,8 +66,8 @@ class ListofLists(AvroBase):
 
 
 AllBasicTypes = Union[str, int, float, bool, None]
-LeafForNestedType = Union[list[AllBasicTypes], Dict[str, AllBasicTypes]]
-RootNestedType = Union[Dict[str, Union[AllBasicTypes, LeafForNestedType]], list[Union[AllBasicTypes, LeafForNestedType]]]
+LeafForNestedType = Union[List[AllBasicTypes], Dict[str, AllBasicTypes]]
+RootNestedType = Union[Dict[str, Union[AllBasicTypes, LeafForNestedType]], List[Union[AllBasicTypes, LeafForNestedType]]]
 
 
 class ComplexNestedTestModel(AvroBase):
