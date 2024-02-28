@@ -65,9 +65,9 @@ class ListofLists(AvroBase):
     c3: List[List[int]]
 
 
-AllBasicTypes = str | int | float | bool | None
-LeafForNestedType = list[AllBasicTypes] | dict[str, AllBasicTypes]
-RootNestedType = dict[str, AllBasicTypes | LeafForNestedType] | list[AllBasicTypes | LeafForNestedType]
+AllBasicTypes = Union[str, int, float, bool, None]
+LeafForNestedType = Union[list[AllBasicTypes], Dict[str, AllBasicTypes]]
+RootNestedType = Union[Dict[str, Union[AllBasicTypes, LeafForNestedType]], list[Union[AllBasicTypes, LeafForNestedType]]]
 
 
 class ComplexNestedTestModel(AvroBase):
@@ -75,10 +75,10 @@ class ComplexNestedTestModel(AvroBase):
 
 
 class TupleTestModel(AvroBase):
-    c1: tuple[int]
-    c2: tuple[float, float]
-    c3: tuple[Status, Status]
-    c4: tuple[dict[str, str] | Status]
+    c1: Tuple[int]
+    c2: Tuple[float, float]
+    c3: Tuple[Status, Status]
+    c4: Tuple[Union[Dict[str, str], Status]]
 
 
 class ComplexTestModel(AvroBase):
