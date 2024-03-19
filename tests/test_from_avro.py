@@ -40,7 +40,10 @@ def test_avsc_to_pydantic_map():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "col1", "type": {"type": "map", "values": "string", "default": {}}},
+                {
+                    "name": "col1",
+                    "type": {"type": "map", "values": "string", "default": {}},
+                },
             ],
         }
     )
@@ -57,7 +60,11 @@ def test_avsc_to_pydantic_map_nested_object():
                     "name": "col1",
                     "type": {
                         "type": "map",
-                        "values": {"type": "record", "name": "Nested", "fields": [{"name": "col1", "type": "string"}]},
+                        "values": {
+                            "type": "record",
+                            "name": "Nested",
+                            "fields": [{"name": "col1", "type": "string"}],
+                        },
                         "default": {},
                     },
                 },
@@ -66,6 +73,40 @@ def test_avsc_to_pydantic_map_nested_object():
     )
     assert "class Test(BaseModel):\n" "    col1: Dict[str, Nested]" in pydantic_code
     assert "class Nested(BaseModel):\n" "    col1: str" in pydantic_code
+
+
+def test_avsc_to_pydantic_namespaced_object_reuse():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "col1",
+                    "type": {
+                        "type": "record",
+                        "name": "Nested",
+                        "namespace": "com.pydantic",
+                        "fields": [{"name": "col1", "type": "string"}],
+                    },
+                },
+                {
+                    "name": "col2",
+                    "type": "com.pydantic.Nested",
+                },
+            ],
+        }
+    )
+    expected_code: str = """
+class Nested(BaseModel):
+    col1: str
+
+
+class Test(BaseModel):
+    col1: Nested
+    col2: Nested
+"""
+    assert expected_code in pydantic_code
 
 
 def test_avsc_to_pydantic_map_nested_array():
@@ -179,8 +220,16 @@ def test_default():
             "fields": [
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2_1", "type": ["null", "string"], "default": None},
-                {"name": "col2_2", "type": ["string", "null"], "default": "default_str"},
-                {"name": "col3", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}},
+                {
+                    "name": "col2_2",
+                    "type": ["string", "null"],
+                    "default": "default_str",
+                },
+                {
+                    "name": "col3",
+                    "type": {"type": "map", "values": "string"},
+                    "default": {"key": "value"},
+                },
                 {"name": "col4", "type": "boolean", "default": True},
                 {"name": "col5", "type": "boolean", "default": False},
             ],
@@ -203,14 +252,25 @@ def test_enums():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+                {
+                    "name": "c1",
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
+                },
             ],
         }
     )
 
     assert "class Test(BaseModel):\n" "    c1: Status" in pydantic_code
 
-    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+    assert (
+        "class Status(str, Enum):\n"
+        '    passed = "passed"\n'
+        '    failed = "failed"' in pydantic_code
+    )
 
 
 def test_enums_reuse():
@@ -219,15 +279,28 @@ def test_enums_reuse():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+                {
+                    "name": "c1",
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
+                },
                 {"name": "c2", "type": "Status"},
             ],
         }
     )
 
-    assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in pydantic_code
+    assert (
+        "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in pydantic_code
+    )
 
-    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+    assert (
+        "class Status(str, Enum):\n"
+        '    passed = "passed"\n'
+        '    failed = "failed"' in pydantic_code
+    )
 
 
 def test_unions():
@@ -245,7 +318,12 @@ def test_unions():
                         {
                             "type": "record",
                             "name": "ARecord",
-                            "fields": [{"name": "values", "type": {"type": "map", "values": "string"}}],
+                            "fields": [
+                                {
+                                    "name": "values",
+                                    "type": {"type": "map", "values": "string"},
+                                }
+                            ],
                         },
                     ],
                 },
