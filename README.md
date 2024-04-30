@@ -35,10 +35,10 @@ print(json.dumps(schema_dict))
 
 ```shell
 # Print to stdout
-pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc
+pydantic-avro avro_to_pydantic --avsc /path/to/schema.avsc
 
 # Save it to a file
-pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc --output /path/to/output.py
+pydantic-avro avro_to_pydantic --avsc /path/to/schema.avsc --output /path/to/output.py
 ```
 
 

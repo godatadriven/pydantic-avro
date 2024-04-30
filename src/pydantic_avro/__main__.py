@@ -10,7 +10,7 @@ def main(input_args: List[str]):
     subparsers = parser.add_subparsers(dest="sub_command", required=True)
 
     parser_cache = subparsers.add_parser("avro_to_pydantic")
-    parser_cache.add_argument("--asvc", type=str, dest="avsc", required=True)
+    parser_cache.add_argument("--avsc", type=str, dest="avsc", required=True)
     parser_cache.add_argument("--output", type=str, dest="output")
 
     args = parser.parse_args(input_args)
