@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Optional, Union
 
 
@@ -134,5 +135,6 @@ def convert_file(avsc_path: str, output_path: Optional[str] = None):
     if output_path is None:
         print(file_content)
     else:
-        with open(output_path, "w") as fh:
-            fh.write(file_content)
+        fh = Path(output_path)
+        fh.parent.mkdir(parents=True, exist_ok=True)
+        fh.write_text(file_content)
