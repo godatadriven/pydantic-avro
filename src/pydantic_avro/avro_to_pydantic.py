@@ -1,9 +1,16 @@
 import json
+import logging
+import sys
 from pathlib import Path
 from typing import Optional, Union
 
+from pydantic_avro.helpers import convert_enum_key
 
-def avsc_to_pydantic(schema: dict) -> str:
+logging.basicConfig(format="{asctime} - {levelname} - {message}", level=logging.INFO, style="{", stream=sys.stdout)
+log = logging.getLogger(__name__)
+
+
+def avsc_to_pydantic(schema: dict, enum_key_style: Optional[str] = None) -> str:
     """Generate python code of pydantic of given Avro Schema"""
     if "type" not in schema or schema["type"] != "record":
         raise AttributeError("Type not supported")
@@ -15,7 +22,7 @@ def avsc_to_pydantic(schema: dict) -> str:
     classes = {}
 
     def get_python_type(t: Union[str, dict]) -> str:
-        """Returns python type for given avro type"""
+        """Return python type for given avro type"""
         optional = False
         if isinstance(t, str):
             if t == "string":
@@ -42,9 +49,9 @@ def avsc_to_pydantic(schema: dict) -> str:
                 py_type = get_python_type(c[0])
             else:
                 if "null" in t:
-                    py_type = f"Optional[Union[{','.join([ get_python_type(e) for e in t if e != 'null'])}]]"
+                    py_type = f"Optional[Union[{','.join([get_python_type(e) for e in t if e != 'null'])}]]"
                 else:
-                    py_type = f"Union[{','.join([ get_python_type(e) for e in t])}]"
+                    py_type = f"Union[{','.join([get_python_type(e) for e in t])}]"
         elif t.get("logicalType") == "uuid":
             py_type = "UUID"
         elif t.get("logicalType") == "decimal":
@@ -60,7 +67,7 @@ def avsc_to_pydantic(schema: dict) -> str:
             if enum_name not in classes:
                 enum_class = f"class {enum_name}(str, Enum):\n"
                 for s in t.get("symbols"):
-                    enum_class += f'    {s} = "{s}"\n'
+                    enum_class += f'    {convert_enum_key(s, enum_key_style)} = "{s}"\n'
                 classes[enum_name] = enum_class
             py_type = enum_name
         elif t.get("type") == "string":
@@ -128,12 +135,12 @@ from pydantic import BaseModel, Field
     return file_content
 
 
-def convert_file(avsc_path: str, output_path: Optional[str] = None):
-    with open(avsc_path, "r") as fh:
+def convert_file(avsc_path: str, output_path: Optional[str] = None, enum_key_style: Optional[str] = None) -> None:
+    with open(avsc_path) as fh:
         avsc_dict = json.load(fh)
-    file_content = avsc_to_pydantic(avsc_dict)
-    if output_path is None:
-        print(file_content)
+    file_content = avsc_to_pydantic(avsc_dict, enum_key_style)
+    if not output_path:
+        log.info(f"Converted file content:\n{file_content}")
     else:
         fh = Path(output_path)
         fh.parent.mkdir(parents=True, exist_ok=True)
