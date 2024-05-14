@@ -230,6 +230,31 @@ def test_enums_reuse():
     assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
 
 
+def test_enums_keys_style():
+    schema = {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "c1", "type": {"type": "enum", "symbols": ["FirstValue", "secondValue"], "name": "Status"}},
+                {"name": "c2", "type": "Status"},
+            ],
+        }
+    no_style = avsc_to_pydantic(schema)
+
+    assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in no_style
+    assert "class Status(str, Enum):\n" '    FirstValue = "FirstValue"\n' '    secondValue = "secondValue"' in no_style
+
+    snake = avsc_to_pydantic(schema, enum_key_style="snake_case")
+
+    assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in snake
+    assert "class Status(str, Enum):\n" '    first_value = "FirstValue"\n' '    second_value = "secondValue"' in snake
+
+    snake_upper = avsc_to_pydantic(schema, enum_key_style="snake_case_upper")
+
+    assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in snake_upper
+    assert "class Status(str, Enum):\n" '    FIRST_VALUE = "FirstValue"\n' '    SECOND_VALUE = "secondValue"' in snake_upper
+
+
 def test_unions():
     pydantic_code = avsc_to_pydantic(
         {

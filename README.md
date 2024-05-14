@@ -15,16 +15,19 @@ pip install pydantic-avro
 
 ### Pydantic class to avro schema
 
-```python
+```python title="example.py"
 import json
 from typing import Optional
 
+
 from pydantic_avro.base import AvroBase
+
 
 class TestModel(AvroBase):
     key1: str
     key2: int
     key2: Optional[str]
+
 
 schema_dict: dict = TestModel.avro_schema()
 print(json.dumps(schema_dict))
@@ -35,10 +38,10 @@ print(json.dumps(schema_dict))
 
 ```shell
 # Print to stdout
-pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc
+pydantic-avro avro_to_pydantic --avsc /path/to/schema.avsc
 
 # Save it to a file
-pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc --output /path/to/output.py
+pydantic-avro avro_to_pydantic --avsc /path/to/schema.avsc --output /path/to/output.py
 ```
 
 
