@@ -127,6 +127,7 @@ TYPE_HANDLERS = {
 
 TYPE_VALUE_IS_DICT = ["record", "enum", "array", "map", "logical"]
 
+
 def get_pydantic_type(schema: dict) -> str:
     if isinstance(schema, str):
         t = schema
