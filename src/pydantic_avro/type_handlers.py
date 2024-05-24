@@ -1,7 +1,6 @@
 import json
-from typing import Protocol
 
-from pydantic import Field, BaseModel
+from pydantic_avro.class_registery import ClassRegistry
 
 LOGICAL_TYPES = {
     "uuid": "UUID",
@@ -12,31 +11,6 @@ LOGICAL_TYPES = {
     "time-micros": "time",
     "date": "date",
 }
-
-
-class ClassRegistry:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(ClassRegistry, cls).__new__(cls)
-            cls._instance._classes = {}
-        return cls._instance
-
-    def add_class(self, name: str, class_def: str):
-        self._classes[name] = class_def
-
-    def get_class(self, name: str) -> str:
-        if name not in self._classes:
-            raise KeyError(f"Class {name} not found in registry")
-        return self._classes[name]
-
-    @property
-    def classes(self) -> dict:
-        return self._classes
-
-    def has_class(self, name: str) -> bool:
-        return name in self._classes
 
 
 def string_type_handler(t: str) -> str:
@@ -89,13 +63,13 @@ def map_type_handler(t: dict) -> str:
     return f"Dict[str, {value_type}]"
 
 
-def logical_type_handler(t: str) -> str:
-    return LOGICAL_TYPES.get(t)
+def logical_type_handler(t: dict) -> str:
+    return LOGICAL_TYPES.get(t.get("logicalType"))
 
 
 def enum_type_handler(t: dict) -> str:
     name = t.get("name")
-    if not ClassRegistry.has_class(name):
+    if not ClassRegistry().has_class(name):
         enum_class = f"class {name}(str, Enum):\n"
         for s in t.get("symbols"):
             enum_class += f'    {s} = "{s}"\n'
@@ -132,6 +106,7 @@ def record_type_handler(schema: dict) -> str:
         current += "    pass\n"
 
     ClassRegistry().add_class(name, current)
+    return name
 
 
 TYPE_HANDLERS = {
@@ -150,23 +125,34 @@ TYPE_HANDLERS = {
     "record": record_type_handler,
 }
 
+TYPE_VALUE_IS_DICT = ["record", "enum", "array", "map", "logical"]
+
+def get_pydantic_type(schema: dict) -> str:
+    if isinstance(schema, str):
+        t = schema
+    else:
+        t = schema["type"]
+
+    if isinstance(t, str) and ClassRegistry().has_class(t):
+        return t
+
+    handler = get_handler(t)
+
+    if handler is None:
+        raise NotImplementedError(f"Type {t} not supported yet")
+
+    if t in TYPE_VALUE_IS_DICT:
+        return handler(schema)
+
+    return handler(t)
+
 
 def get_handler(t: str | dict | list) -> callable:
     if isinstance(t, str):
         return TYPE_HANDLERS.get(t)
     elif isinstance(t, dict) and "logicalType" in t:
-        return TYPE_HANDLERS.get("logical_type")
+        return TYPE_HANDLERS.get("logical")
     elif isinstance(t, dict) and "type" in t:
         return TYPE_HANDLERS.get(t["type"])
     elif isinstance(t, list):
         return TYPE_HANDLERS.get("list")
-
-
-def get_pydantic_type(schema: dict) -> str:
-    t = schema["type"]
-    handler = get_handler(t)
-    if handler is None:
-        raise NotImplementedError(f"Type {t} not supported yet")
-    if t == "record":
-        return handler(schema)
-    return handler(t)

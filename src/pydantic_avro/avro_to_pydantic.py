@@ -1,7 +1,8 @@
 import json
-from typing import Optional, Union
+from typing import Optional
 
-from pydantic_avro.type_handlers import ClassRegistry, get_pydantic_type
+from pydantic_avro.type_handlers import get_pydantic_type
+from pydantic_avro.class_registery import ClassRegistry
 
 
 def validate_schema(schema: dict) -> None:
@@ -43,3 +44,5 @@ def convert_file(avsc_path: str, output_path: Optional[str] = None):
     else:
         with open(output_path, "w") as fh:
             fh.write(file_content)
+
+
