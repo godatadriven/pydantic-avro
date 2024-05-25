@@ -14,42 +14,42 @@ LOGICAL_TYPES = {
 
 
 def string_type_handler(t: dict) -> str:
-    if t['type'] == "string":
+    if t["type"] == "string":
         return "str"
 
 
 def int_type_handler(t: dict) -> str:
-    if t['type'] == "int":
+    if t["type"] == "int":
         return "int"
 
 
 def long_type_handler(t: dict) -> str:
-    if t['type'] == "long":
+    if t["type"] == "long":
         return "int"
 
 
 def boolean_type_handler(t: dict) -> str:
-    if t['type'] == "boolean":
+    if t["type"] == "boolean":
         return "bool"
 
 
 def double_type_handler(t: dict) -> str:
-    if t['type'] == "double":
+    if t["type"] == "double":
         return "float"
 
 
 def float_type_handler(t: dict) -> str:
-    if t['type'] == "float":
+    if t["type"] == "float":
         return "float"
 
 
 def bytes_type_handler(t: dict) -> str:
-    if t['type'] == "bytes":
+    if t["type"] == "bytes":
         return "bytes"
 
 
 def list_type_handler(t: dict) -> str:
-    l = t['type']
+    l = t["type"]
     if "null" in l and len(l) == 2:
         c = l.copy()
         c.remove("null")
@@ -72,6 +72,7 @@ def logical_type_handler(t: dict) -> str:
     if isinstance(t["type"], dict):
         return LOGICAL_TYPES.get(t["type"].get("logicalType"))
     return LOGICAL_TYPES.get(t.get("logicalType"))
+
 
 def enum_type_handler(t: dict) -> str:
     name = t["type"].get("name")
@@ -140,24 +141,23 @@ def get_pydantic_type(t: str | dict | list) -> str:
     if isinstance(t, str):
         t = {"type": t}
 
-    if isinstance(t['type'], str) and ClassRegistry().has_class(t["type"]):
+    if isinstance(t["type"], str) and ClassRegistry().has_class(t["type"]):
         return t["type"]
 
     return get_handler(t)(t)
 
 
-
 def get_handler(t: dict) -> callable:
-    h= None
+    h = None
     t = t["type"]
     if isinstance(t, str):
         h = TYPE_HANDLERS.get(t)
     elif isinstance(t, dict) and "logicalType" in t:
-        h= TYPE_HANDLERS.get("logical")
+        h = TYPE_HANDLERS.get("logical")
     elif isinstance(t, dict) and "type" in t:
-        h= TYPE_HANDLERS.get(t["type"])
+        h = TYPE_HANDLERS.get(t["type"])
     elif isinstance(t, list):
-        h= TYPE_HANDLERS.get("list")
+        h = TYPE_HANDLERS.get("list")
 
     if h:
         return h
