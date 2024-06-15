@@ -2,7 +2,7 @@
 name = "pydantic-avro"
 version = "0.6.5"
 description = "Converting pydantic classes to avro schemas"
-authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
+authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>", "Daniel Tom <daniel.tom@xebia.com>"]
 
 keywords = ["pydantic", "avro"]
 readme = "README.md"
