@@ -1,7 +1,7 @@
-from __future__ import annotations
 import json
+from typing import Callable, Union
 
-from pydantic_avro.class_registery import ClassRegistry
+from pydantic_avro.from_avro.class_registery import ClassRegistry
 
 LOGICAL_TYPES = {
     "uuid": "UUID",
@@ -105,31 +105,33 @@ def array_type_handler(t: dict) -> str:
     return f"List[{sub_type}]"
 
 
+def generate_field_string(field: dict) -> str:
+    """Generate a string representing a field in the Pydantic model."""
+    n = field["name"]
+    t = get_pydantic_type(field)
+    default = field.get("default")
+    if field["type"] == "int" and "default" in field and isinstance(default, (bool, type(None))):
+        return f"    {n}: {t} = Field({default}, ge=-2**31, le=(2**31 - 1))"
+    elif field["type"] == "int" and "default" in field:
+        return f"    {n}: {t} = Field({json.dumps(default)}, ge=-2**31, le=(2**31 - 1))"
+    elif field["type"] == "int":
+        return f"    {n}: {t} = Field(..., ge=-2**31, le=(2**31 - 1))"
+    elif "default" not in field:
+        return f"    {n}: {t}"
+    elif isinstance(default, (bool, type(None))):
+        return f"    {n}: {t} = {default}"
+    else:
+        return f"    {n}: {t} = {json.dumps(default)}"
+
+
 def record_type_handler(t: dict) -> str:
     """Gets the record type of a given Avro record type and adds it to the class registry"""
     t = t["type"] if isinstance(t["type"], dict) else t
     name = t["name"]
-    current = f"class {name}(BaseModel):\n"
     fields = t["fields"] if "fields" in t else t["type"]["fields"]
-    for field in fields:
-        n = field["name"]
-        t = get_pydantic_type(field)
-        default = field.get("default")
-        if field["type"] == "int" and "default" in field and isinstance(default, (bool, type(None))):
-            current += f"    {n}: {t} = Field({default}, ge=-2**31, le=(2**31 - 1))\n"
-        elif field["type"] == "int" and "default" in field:
-            current += f"    {n}: {t} = Field({json.dumps(default)}, ge=-2**31, le=(2**31 - 1))\n"
-        elif field["type"] == "int":
-            current += f"    {n}: {t} = Field(..., ge=-2**31, le=(2**31 - 1))\n"
-        elif "default" not in field:
-            current += f"    {n}: {t}\n"
-        elif isinstance(default, (bool, type(None))):
-            current += f"    {n}: {t} = {default}\n"
-        else:
-            current += f"    {n}: {t} = {json.dumps(default)}\n"
-    if len(fields) == 0:
-        current += "    pass\n"
-
+    field_strings = [generate_field_string(field) for field in fields]
+    class_body = "\n".join(field_strings) if field_strings else "    pass"
+    current = f"class {name}(BaseModel):\n{class_body}\n"
     ClassRegistry().add_class(name, current)
     return name
 
@@ -151,7 +153,7 @@ TYPE_HANDLERS = {
 }
 
 
-def get_pydantic_type(t: str | dict | list) -> str:
+def get_pydantic_type(t: Union[str, dict, list]) -> str:
     """Get the Pydantic type for a given Avro type"""
     if isinstance(t, str):
         t = {"type": t}
@@ -162,7 +164,7 @@ def get_pydantic_type(t: str | dict | list) -> str:
     return get_handler(t)(t)
 
 
-def get_handler(t: dict) -> callable:
+def get_handler(t: dict) -> Callable:
     """Get the handler for a given Avro type"""
     h = None
     t = t["type"]

@@ -2,7 +2,7 @@ import argparse
 import sys
 from typing import List
 
-from pydantic_avro.avro_to_pydantic import convert_file
+from pydantic_avro.from_avro.avro_to_pydantic import convert_file
 
 
 def main(input_args: List[str]):

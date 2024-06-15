@@ -1,4 +1,4 @@
-from pydantic_avro.avro_to_pydantic import avsc_to_pydantic
+from pydantic_avro.from_avro.avro_to_pydantic import avsc_to_pydantic
 
 
 def test_avsc_to_pydantic_empty():
@@ -57,7 +57,11 @@ def test_avsc_to_pydantic_map_nested_object():
                     "name": "col1",
                     "type": {
                         "type": "map",
-                        "values": {"type": "record", "name": "Nested", "fields": [{"name": "col1", "type": "string"}]},
+                        "values": {
+                            "type": "record",
+                            "name": "Nested",
+                            "fields": [{"name": "col1", "type": "string"}],
+                        },
                         "default": {},
                     },
                 },
@@ -180,7 +184,11 @@ def test_default():
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2_1", "type": ["null", "string"], "default": None},
                 {"name": "col2_2", "type": ["string", "null"], "default": "default_str"},
-                {"name": "col3", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}},
+                {
+                    "name": "col3",
+                    "type": {"type": "map", "values": "string"},
+                    "default": {"key": "value"},
+                },
                 {"name": "col4", "type": "boolean", "default": True},
                 {"name": "col5", "type": "boolean", "default": False},
             ],
@@ -203,7 +211,10 @@ def test_enums():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+                {
+                    "name": "c1",
+                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                },
             ],
         }
     )
@@ -219,7 +230,10 @@ def test_enums_reuse():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "c1", "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"}},
+                {
+                    "name": "c1",
+                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                },
                 {"name": "c2", "type": "Status"},
             ],
         }
