@@ -3,16 +3,15 @@ from typing import Optional
 from pydantic import BaseModel
 
 from pydantic_avro.to_avro.config import PYDANTIC_V2
-from pydantic_avro.to_avro.mapping import AvroTypeHandler
+from pydantic_avro.to_avro.types import AvroTypeHandler
 
 
 class AvroBase(BaseModel):
-    """This is base pydantic class that will add some methods"""
+    """This class provides functionality to convert a pydantic model to an Avro schema."""
 
     @classmethod
     def avro_schema(cls, by_alias: bool = True, namespace: Optional[str] = None) -> dict:
-        """
-        Return the avro schema for the pydantic class
+        """Returns the avro schema for the pydantic class
 
         :param by_alias: generate the schemas using the aliases defined, if any
         :param namespace: Provide an optional namespace string to use in schema generation
@@ -21,7 +20,7 @@ class AvroBase(BaseModel):
         schema = cls.model_json_schema(by_alias=by_alias) if PYDANTIC_V2 else cls.schema(by_alias=by_alias)
 
         if namespace is None:
-            # default namespace will be based on title
+            # Default namespace will be based on title
             namespace = schema["title"]
 
         avro_type_handler = AvroTypeHandler(schema)

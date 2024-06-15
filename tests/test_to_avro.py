@@ -12,7 +12,8 @@ from avro import schema as avro_schema
 from fastavro import parse_schema, reader, writer
 from pydantic import Field
 
-from pydantic_avro.to_avro.base import PYDANTIC_V2, AvroBase
+from pydantic_avro.base import AvroBase
+from pydantic_avro.to_avro.config import PYDANTIC_V2
 
 
 def dump(obj: AvroBase):

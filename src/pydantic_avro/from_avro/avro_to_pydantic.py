@@ -2,7 +2,7 @@ import json
 from typing import Optional
 
 from pydantic_avro.from_avro.class_registery import ClassRegistry
-from pydantic_avro.from_avro.type_mapping import get_pydantic_type
+from pydantic_avro.from_avro.types import get_pydantic_type
 
 
 def validate_schema(schema: dict) -> None:
