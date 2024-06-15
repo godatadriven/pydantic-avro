@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 
 from pydantic_avro.class_registery import ClassRegistry
@@ -14,41 +15,49 @@ LOGICAL_TYPES = {
 
 
 def string_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro string type"""
     if t["type"] == "string":
         return "str"
 
 
 def int_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro int type"""
     if t["type"] == "int":
         return "int"
 
 
 def long_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro long type"""
     if t["type"] == "long":
         return "int"
 
 
 def boolean_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro boolean type"""
     if t["type"] == "boolean":
         return "bool"
 
 
 def double_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro double type"""
     if t["type"] == "double":
         return "float"
 
 
 def float_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro float type"""
     if t["type"] == "float":
         return "float"
 
 
 def bytes_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro bytes type"""
     if t["type"] == "bytes":
         return "bytes"
 
 
 def list_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro list type"""
     l = t["type"]
     if "null" in l and len(l) == 2:
         c = l.copy()
@@ -60,6 +69,7 @@ def list_type_handler(t: dict) -> str:
 
 
 def map_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro map type"""
     if isinstance(t["type"], dict):
         value_type = get_pydantic_type(t["type"].get("values"))
         return f"Dict[str, {value_type}]"
@@ -69,12 +79,14 @@ def map_type_handler(t: dict) -> str:
 
 
 def logical_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro logical type"""
     if isinstance(t["type"], dict):
         return LOGICAL_TYPES.get(t["type"].get("logicalType"))
     return LOGICAL_TYPES.get(t.get("logicalType"))
 
 
 def enum_type_handler(t: dict) -> str:
+    """Gets the enum type of a given Avro enum type and adds it to the class registry"""
     name = t["type"].get("name")
     if not ClassRegistry().has_class(name):
         enum_class = f"class {name}(str, Enum):\n"
@@ -85,6 +97,7 @@ def enum_type_handler(t: dict) -> str:
 
 
 def array_type_handler(t: dict) -> str:
+    """Get the Python type of a given Avro array type"""
     if isinstance(t["type"], dict):
         sub_type = get_pydantic_type(t["type"].get("items"))
     else:
@@ -93,6 +106,7 @@ def array_type_handler(t: dict) -> str:
 
 
 def record_type_handler(t: dict) -> str:
+    """Gets the record type of a given Avro record type and adds it to the class registry"""
     t = t["type"] if isinstance(t["type"], dict) else t
     name = t["name"]
     current = f"class {name}(BaseModel):\n"
@@ -138,6 +152,7 @@ TYPE_HANDLERS = {
 
 
 def get_pydantic_type(t: str | dict | list) -> str:
+    """Get the Pydantic type for a given Avro type"""
     if isinstance(t, str):
         t = {"type": t}
 
@@ -148,6 +163,7 @@ def get_pydantic_type(t: str | dict | list) -> str:
 
 
 def get_handler(t: dict) -> callable:
+    """Get the handler for a given Avro type"""
     h = None
     t = t["type"]
     if isinstance(t, str):
