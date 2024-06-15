@@ -59,7 +59,7 @@ class AvroTypeHandler:
     def fields_to_avro_dicts(self, parent_schema: dict) -> List[dict]:
         """Converts fields from the schema to AVRO and returns them as a list of dictionaries.
 
-        :param parent_schema: The parent schema of the field (not always the root schema)
+        :param parent_schema: The parent schema of the field (not the root schema for nested models)
         """
         fields = []
 
@@ -177,7 +177,7 @@ class AvroTypeHandler:
 
     def _array_to_avro(self, field_props: dict, avro_type_dict: dict) -> dict:
         """Returns a type of an array field"""
-        items = field_props.get("items")
+        items = field_props["items"]
         tn = self._get_avro_type_dict(items)
         # If items in array are an object:
         if "$ref" in items:

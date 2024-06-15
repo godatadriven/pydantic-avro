@@ -2,7 +2,7 @@
 name = "pydantic-avro"
 version = "0.6.5"
 description = "Converting pydantic classes to avro schemas"
-authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>", "Daniel Tom <daniel.tom@xebia.com>"]
+authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
 
 keywords = ["pydantic", "avro"]
 readme = "README.md"
@@ -63,6 +63,7 @@ line_length = 120
 [tool.mypy]
 files = "src/"
 python_version = "3.9"
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
