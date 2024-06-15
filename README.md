@@ -19,7 +19,7 @@ pip install pydantic-avro
 import json
 from typing import Optional
 
-from pydantic_avro.from_avro.base import AvroBase
+from pydantic_avro.base import AvroBase
 
 
 class TestModel(AvroBase):
