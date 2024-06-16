@@ -39,10 +39,8 @@ def list_type_handler(t: dict) -> str:
 
 def map_type_handler(t: dict) -> str:
     """Get the Python type of a given Avro map type"""
-    if isinstance(t["type"], dict):
-        avro_value_type = t["type"].get("values")
-    else:
-        avro_value_type = t.get("values")
+
+    avro_value_type = t["type"].get("values")
 
     if avro_value_type is None:
         raise AttributeError("Values are required for map type")
@@ -53,9 +51,7 @@ def map_type_handler(t: dict) -> str:
 
 def logical_type_handler(t: dict) -> str:
     """Get the Python type of a given Avro logical type"""
-    if isinstance(t["type"], dict):
-        return LOGICAL_TYPES[t["type"]["logicalType"]]
-    return LOGICAL_TYPES[t["logicalType"]]
+    return LOGICAL_TYPES[t["type"]["logicalType"]]
 
 
 def enum_type_handler(t: dict) -> str:

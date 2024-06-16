@@ -66,6 +66,19 @@ def test_avsc_to_pydantic_map():
     assert "class Test(BaseModel):\n" "    col1: Dict[str, str]" in pydantic_code
 
 
+def test_avsc_to_pydantic_map_missing_values():
+    with pytest.raises(AttributeError, match="Values are required for map type"):
+        avsc_to_pydantic(
+            {
+                "name": "Test",
+                "type": "record",
+                "fields": [
+                    {"name": "col1", "type": {"type": "map", "values": None, "default": {}}},
+                ],
+            }
+        )
+
+
 def test_avsc_to_pydantic_map_nested_object():
     pydantic_code = avsc_to_pydantic(
         {
