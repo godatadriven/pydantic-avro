@@ -1,9 +1,28 @@
-from pydantic_avro.from_avro.avro_to_pydantic import avsc_to_pydantic
+import json
+
+import pytest
+
+from pydantic_avro.from_avro.avro_to_pydantic import avsc_to_pydantic, convert_file
 
 
 def test_avsc_to_pydantic_empty():
     pydantic_code = avsc_to_pydantic({"name": "Test", "type": "record", "fields": []})
     assert "class Test(BaseModel):\n    pass" in pydantic_code
+
+
+def test_avsc_to_pydantic_unsupported_type():
+    with pytest.raises(AttributeError, match="Type not supported"):
+        avsc_to_pydantic({"name": "Test", "fields": []})
+
+
+def test_avsc_to_pydantic_missing_name():
+    with pytest.raises(AttributeError, match="Name is required"):
+        avsc_to_pydantic({"type": "record", "fields": []})
+
+
+def test_avsc_to_pydantic_missing_fields():
+    with pytest.raises(AttributeError, match="Fields are required"):
+        avsc_to_pydantic({"name": "Test", "type": "record"})
 
 
 def test_avsc_to_pydantic_primitive():
@@ -294,3 +313,30 @@ def test_int():
     )
 
     assert "c1: int = Field(..., ge=-2**31, le=(2**31 - 1))" in pydantic_code
+
+
+def test_convert_file(tmp_path):
+    # Create a temporary avsc file
+    avsc_file = tmp_path / "test.avsc"
+    output_file = tmp_path / "output.py"
+    avsc_content = {"name": "Test", "type": "record", "fields": []}
+    avsc_file.write_text(json.dumps(avsc_content))
+
+    # Call the function with the path of the temporary file
+    convert_file(str(avsc_file), output_path=str(output_file))
+
+    # Assert that the output matches the expected output
+    expected_output = """
+from datetime import date, datetime, time
+from decimal import Decimal
+from enum import Enum
+from typing import List, Optional, Dict, Union
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+
+class Test(BaseModel):
+    pass
+"""
+    assert output_file.read_text() == expected_output

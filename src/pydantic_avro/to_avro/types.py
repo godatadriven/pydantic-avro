@@ -51,7 +51,9 @@ def null_to_first_element(avro_type_dict: dict) -> dict:
     return avro_type_dict
 
 
-class AvroTypeHandler:
+class AvroTypeConverter:
+    """Converts Pydantic schema to AVRO schema."""
+
     def __init__(self, schema: dict):
         self.root_schema = schema
         self.classes_seen: Set[str] = set()
@@ -103,16 +105,16 @@ class AvroTypeHandler:
             return self._array_to_avro(field_props, avro_type_dict)
         elif t == "string":
             avro_type_dict["type"] = self._string_to_avro(f)
-        elif t == "number":
-            avro_type_dict["type"] = "double"
         elif t == "integer":
             avro_type_dict["type"] = self._integer_to_avro(field_props)
+        elif t == "object":
+            avro_type_dict["type"] = self._object_to_avro(field_props)
+        elif t == "number":
+            avro_type_dict["type"] = "double"
         elif t == "boolean":
             avro_type_dict["type"] = "boolean"
         elif t == "null":
             avro_type_dict["type"] = "null"
-        elif t == "object":
-            avro_type_dict["type"] = self._object_to_avro(field_props)
         else:
             raise NotImplementedError(
                 f"Type '{t}' not support yet, "
@@ -149,12 +151,14 @@ class AvroTypeHandler:
 
     @staticmethod
     def _string_to_avro(f: Optional[str]):
+        """Returns a type of a string field"""
         if not f:
             return "string"
         return STRING_TYPE_MAPPING[f]
 
     @staticmethod
     def _integer_to_avro(field_props: dict) -> str:
+        """Returns a type of an integer field"""
         minimum = field_props.get("minimum")
         maximum = field_props.get("maximum")
         # integer in python can be a long, only if minimum and maximum value is set an int can be used
@@ -163,6 +167,7 @@ class AvroTypeHandler:
         return "long"
 
     def _object_to_avro(self, field_props: dict) -> dict:
+        """Returns a type of an object field"""
         a = field_props.get("additionalProperties")
         value_type = "string" if a is None else self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}

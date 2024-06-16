@@ -11,11 +11,13 @@ def validate_schema(schema: dict) -> None:
     if "name" not in schema:
         raise AttributeError("Name is required")
     if "fields" not in schema:
-        raise AttributeError("fields are required")
+        raise AttributeError("Fields are required")
 
 
 def avsc_to_pydantic(schema: dict) -> str:
     """Generate python code of pydantic of given Avro Schema"""
+    # Ensures that state is clean from previous calls
+    ClassRegistry().clear()
     validate_schema(schema)
     get_pydantic_type(schema)
 

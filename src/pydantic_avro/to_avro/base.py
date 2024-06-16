@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from pydantic_avro.to_avro.config import PYDANTIC_V2
-from pydantic_avro.to_avro.types import AvroTypeHandler
+from pydantic_avro.to_avro.types import AvroTypeConverter
 
 
 class AvroBase(BaseModel):
@@ -23,12 +23,12 @@ class AvroBase(BaseModel):
             # Default namespace will be based on title
             namespace = schema["title"]
 
-        avro_type_handler = AvroTypeHandler(schema)
+        avro_type_handler = AvroTypeConverter(schema)
 
         return cls._avro_schema(schema, namespace, avro_type_handler)
 
     @staticmethod
-    def _avro_schema(schema: dict, namespace: str, avro_type_handler: AvroTypeHandler) -> dict:
+    def _avro_schema(schema: dict, namespace: str, avro_type_handler: AvroTypeConverter) -> dict:
         """Return the avro schema for the given pydantic schema"""
 
         fields = avro_type_handler.fields_to_avro_dicts(schema)
