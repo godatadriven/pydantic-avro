@@ -15,19 +15,19 @@ include = ["LICENSE"]
 packages = [{ include = "pydantic_avro", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.8.1,<4.0"
 pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
 coverage = { version = "^7.2.2", extras = ["toml"] }
-pytest = "^7.2.2"
+pytest = "^7.4.4"
 pytest-mock = "^3.10.0"
-pyproject-flake8 = "^5.0.4"
+pyproject-flake8 = "^7.0.0"
 isort = "^5.10.0"
-black = "23.3.0"
-pytest-cov = "^4.0.0"
+black = "24.4.2"
+pytest-cov = "^5.0.0"
 mypy = "^1.1.1"
-avro = "^1.11.0"
+avro = "^1.11.3"
 fastavro = "^1.8.1"
 
 [tool.poetry.scripts]
