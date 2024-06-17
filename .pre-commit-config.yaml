@@ -1,0 +1,15 @@
+repos:
+  -   repo: https://github.com/psf/black.git
+      rev: 22.6.0
+      hooks:
+      - id: black
+        args: [ --config=pyproject.toml ]
+  -   repo: https://github.com/pre-commit/mirrors-isort
+      rev: v5.8.0
+      hooks:
+        - id: isort
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.4.1"
+    hooks:
+      - id: mypy
+        args: ["--config-file", "pyproject.toml" ]

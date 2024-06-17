@@ -13,7 +13,7 @@ from fastavro import parse_schema, reader, writer
 from pydantic import Field
 
 from pydantic_avro.base import AvroBase
-from src.pydantic_avro.base import PYDANTIC_V2
+from pydantic_avro.to_avro.config import PYDANTIC_V2
 
 
 def dump(obj: AvroBase):
@@ -115,7 +115,11 @@ def test_avro():
             {"name": "c6", "type": {"type": "long", "logicalType": "time-micros"}},
             {"name": "c7", "type": ["null", "string"], "default": None},
             {"name": "c8", "type": "boolean"},
-            {"name": "c9", "type": {"type": "string", "logicalType": "uuid"}, "doc": "This is UUID"},
+            {
+                "name": "c9",
+                "type": {"type": "string", "logicalType": "uuid"},
+                "doc": "This is UUID",
+            },
             {
                 "name": "c10",
                 "type": ["null", {"type": "string", "logicalType": "uuid"}],
@@ -154,8 +158,8 @@ def test_avro_write():
         c13=Status.passed,
         c14=bytes(),
     )
-
-    parsed_schema = parse_schema(TestModel.avro_schema())
+    avro_schema = TestModel.avro_schema()
+    parsed_schema = parse_schema(avro_schema)
 
     # 'records' can be an iterable (including generator)
     records = [dump(record1)]
@@ -183,7 +187,11 @@ def test_reused_object():
         "fields": [
             {
                 "name": "c1",
-                "type": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+                "type": {
+                    "fields": [{"name": "c111", "type": "string"}],
+                    "name": "Nested2Model",
+                    "type": "record",
+                },
             },
             {"name": "c2", "type": "Nested2Model"},
         ],
@@ -194,7 +202,7 @@ def test_reused_object():
 
 def test_reused_object_array():
     result = ReusedObjectArray.avro_schema()
-    assert result == {
+    expected = {
         "type": "record",
         "name": "ReusedObjectArray",
         "namespace": "ReusedObjectArray",
@@ -202,14 +210,19 @@ def test_reused_object_array():
             {
                 "name": "c1",
                 "type": {
-                    "items": {"fields": [{"name": "c111", "type": "string"}], "name": "Nested2Model", "type": "record"},
+                    "items": {
+                        "fields": [{"name": "c111", "type": "string"}],
+                        "name": "Nested2Model",
+                        "type": "record",
+                    },
                     "type": "array",
                 },
             },
             {"name": "c2", "type": "Nested2Model"},
         ],
     }
-    schema = avro_schema.parse(json.dumps(result))
+    assert result == expected
+    schema = avro_schema.parse(json.dumps(result, sort_keys=True))
     assert len(schema.fields) == 2
 
 
@@ -246,7 +259,13 @@ def test_complex_avro():
                     "type": "array",
                 },
             },
-            {"name": "c4", "type": {"items": {"logicalType": "timestamp-micros", "type": "long"}, "type": "array"}},
+            {
+                "name": "c4",
+                "type": {
+                    "items": {"logicalType": "timestamp-micros", "type": "long"},
+                    "type": "array",
+                },
+            },
             {"name": "c5", "type": {"type": "map", "values": "NestedModel"}},
             {"name": "c6", "type": ["null", "string", "long", "NestedModel"], "default": None},
         ],
@@ -423,7 +442,13 @@ def test_optional_array():
         "type": "record",
         "namespace": "OptionalArray",
         "name": "OptionalArray",
-        "fields": [{"type": ["null", {"type": "array", "items": {"type": "string"}}], "name": "c1", "default": None}],
+        "fields": [
+            {
+                "type": ["null", {"type": "array", "items": {"type": "string"}}],
+                "name": "c1",
+                "default": None,
+            }
+        ],
     }
 
 

@@ -9,3 +9,5 @@ __pycache__
 *.iml
 
 .coverage
+.python-version
+coverage.xml

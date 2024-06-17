@@ -21,10 +21,12 @@ from typing import Optional
 
 from pydantic_avro.base import AvroBase
 
+
 class TestModel(AvroBase):
     key1: str
     key2: int
     key2: Optional[str]
+
 
 schema_dict: dict = TestModel.avro_schema()
 print(json.dumps(schema_dict))
