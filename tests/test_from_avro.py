@@ -3,6 +3,7 @@ import json
 import pytest
 
 from pydantic_avro.from_avro.avro_to_pydantic import avsc_to_pydantic, convert_file
+from pydantic_avro.from_avro.class_registery import ClassRegistry
 
 
 def test_avsc_to_pydantic_empty():
@@ -23,6 +24,17 @@ def test_avsc_to_pydantic_missing_name():
 def test_avsc_to_pydantic_missing_fields():
     with pytest.raises(AttributeError, match="Fields are required"):
         avsc_to_pydantic({"name": "Test", "type": "record"})
+
+
+def test_avsc_to_pydantic_class_name_formatting():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test_Name",
+            "type": "record",
+            "fields": [],
+        }
+    )
+    assert "class TestName(BaseModel):\n    pass" in pydantic_code
 
 
 def test_avsc_to_pydantic_primitive():
@@ -59,7 +71,10 @@ def test_avsc_to_pydantic_map():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "col1", "type": {"type": "map", "values": "string", "default": {}}},
+                {
+                    "name": "col1",
+                    "type": {"type": "map", "values": "string", "default": {}},
+                },
             ],
         }
     )
@@ -73,7 +88,10 @@ def test_avsc_to_pydantic_map_missing_values():
                 "name": "Test",
                 "type": "record",
                 "fields": [
-                    {"name": "col1", "type": {"type": "map", "values": None, "default": {}}},
+                    {
+                        "name": "col1",
+                        "type": {"type": "map", "values": None, "default": {}},
+                    },
                 ],
             }
         )
@@ -215,7 +233,11 @@ def test_default():
             "fields": [
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2_1", "type": ["null", "string"], "default": None},
-                {"name": "col2_2", "type": ["string", "null"], "default": "default_str"},
+                {
+                    "name": "col2_2",
+                    "type": ["string", "null"],
+                    "default": "default_str",
+                },
                 {
                     "name": "col3",
                     "type": {"type": "map", "values": "string"},
@@ -245,7 +267,11 @@ def test_enums():
             "fields": [
                 {
                     "name": "c1",
-                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
                 },
             ],
         }
@@ -264,7 +290,11 @@ def test_enums_reuse():
             "fields": [
                 {
                     "name": "c1",
-                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
                 },
                 {"name": "c2", "type": "Status"},
             ],
@@ -291,7 +321,12 @@ def test_unions():
                         {
                             "type": "record",
                             "name": "ARecord",
-                            "fields": [{"name": "values", "type": {"type": "map", "values": "string"}}],
+                            "fields": [
+                                {
+                                    "name": "values",
+                                    "type": {"type": "map", "values": "string"},
+                                }
+                            ],
                         },
                     ],
                 },

@@ -13,7 +13,9 @@ class ClassRegistry:
 
     def add_class(self, name: str, class_def: str):
         """Add a class to the registry."""
-        self._classes[name] = class_def
+        formatted_name = self.format_class_name(name)
+        formatted_class_def = self.replace_class_def_name(name, class_def)
+        self._classes[formatted_name] = formatted_class_def
 
     @property
     def classes(self) -> dict:
@@ -27,3 +29,12 @@ class ClassRegistry:
     def clear(self):
         """Clear all classes from the registry."""
         self._classes.clear()
+
+    def format_class_name(self, name: str) -> str:
+        """Format the class name to be Pythonic."""
+        return name.replace("_", "")
+
+    def replace_class_def_name(self, class_name: str, class_def: str) -> str:
+        """Format the class definition to be Pythonic."""
+        formatted_class_name = self.format_class_name(class_name)
+        return class_def.replace(class_name, formatted_class_name)
