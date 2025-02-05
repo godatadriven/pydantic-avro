@@ -3,6 +3,7 @@ import json
 import pytest
 
 from pydantic_avro.from_avro.avro_to_pydantic import avsc_to_pydantic, convert_file
+from pydantic_avro.from_avro.class_registery import ClassRegistry
 
 
 def test_avsc_to_pydantic_empty():
@@ -23,6 +24,17 @@ def test_avsc_to_pydantic_missing_name():
 def test_avsc_to_pydantic_missing_fields():
     with pytest.raises(AttributeError, match="Fields are required"):
         avsc_to_pydantic({"name": "Test", "type": "record"})
+
+
+def test_avsc_to_pydantic_class_name_formatting():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test_Name",
+            "type": "record",
+            "fields": [],
+        }
+    )
+    assert "class TestName(BaseModel):\n    pass" in pydantic_code
 
 
 def test_avsc_to_pydantic_primitive():
