@@ -17,13 +17,14 @@ typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
 
 [[package]]
 name = "avro"
-version = "1.11.3"
+version = "1.12.0"
 description = "Avro is a serialization and RPC framework."
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 groups = ["dev"]
 files = [
-    {file = "avro-1.11.3.tar.gz", hash = "sha256:3393bb5139f9cf0791d205756ce1e39a5b58586af5b153d6a3b5a199610e9d17"},
+    {file = "avro-1.12.0-py2.py3-none-any.whl", hash = "sha256:9a255c72e1837341dd4f6ff57b2b6f68c0f0cecdef62dd04962e10fd33bec05b"},
+    {file = "avro-1.12.0.tar.gz", hash = "sha256:cad9c53b23ceed699c7af6bddced42e2c572fd6b408c257a7d4fc4e8cf2e2d6b"},
 ]
 
 [package.extras]
@@ -671,4 +672,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8.1,<4.0"
-content-hash = "1454ce3204d729c0f6fd57378ab33b0055c29bdd068f5753c157335222e81584"
+content-hash = "7fcad089cf40b1ae1ec71ace1a3b632aa00e7a03ae55d43afbb761c274e6804d"
