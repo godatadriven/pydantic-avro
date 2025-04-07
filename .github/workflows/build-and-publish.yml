@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        token: ${{ secrets.GIT_TOKEN_TIM }}
+        token: ${{ secrets.GIT_TOKEN_DANIEL }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
