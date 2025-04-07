@@ -127,6 +127,19 @@ def test_avsc_to_pydantic_map_nested_array():
     assert "class Test(BaseModel):\n" "    col1: Dict[str, List[str]]" in pydantic_code
 
 
+def test_avsc_to_pydantic_optional_map_primitive_value():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {"name": "col1", "type": ["null", {"type": "map", "values": "string"}], "default": "null"},
+            ],
+        }
+    )
+    assert 'col1: Optional[Dict[str, string]] = "null"' in pydantic_code
+
+
 def test_avsc_to_pydantic_logical():
     pydantic_code = avsc_to_pydantic(
         {

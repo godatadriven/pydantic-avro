@@ -39,13 +39,19 @@ def list_type_handler(t: dict) -> str:
 
 def map_type_handler(t: dict) -> str:
     """Get the Python type of a given Avro map type"""
+    type_field = t["type"]
+    value_type = None
+    if isinstance(type_field, dict):
+        avro_value_type = type_field.get("values")
+        if avro_value_type is None:
+            raise AttributeError(f"Values are required for map type. Received: {t}")
+        value_type = get_pydantic_type(avro_value_type)
+    if isinstance(type_field, str):
+        value_type = t.get("values")
 
-    avro_value_type = t["type"].get("values")
+    if value_type is None:
+        raise AttributeError(f"Values are required for map type. Received: {t}")
 
-    if avro_value_type is None:
-        raise AttributeError("Values are required for map type")
-
-    value_type = get_pydantic_type(avro_value_type)
     return f"Dict[str, {value_type}]"
 
 
@@ -120,7 +126,7 @@ def get_pydantic_type(t: Union[str, dict]) -> str:
     if isinstance(t, str):
         t = {"type": t}
 
-    if isinstance(t["type"], str):
+    if isinstance(t.get("type"), str):
         if ClassRegistry().has_class(t["type"]):
             return t["type"]
 
