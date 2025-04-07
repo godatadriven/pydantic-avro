@@ -59,7 +59,10 @@ def test_avsc_to_pydantic_map():
             "name": "Test",
             "type": "record",
             "fields": [
-                {"name": "col1", "type": {"type": "map", "values": "string", "default": {}}},
+                {
+                    "name": "col1",
+                    "type": {"type": "map", "values": "string", "default": {}},
+                },
             ],
         }
     )
@@ -73,7 +76,10 @@ def test_avsc_to_pydantic_map_missing_values():
                 "name": "Test",
                 "type": "record",
                 "fields": [
-                    {"name": "col1", "type": {"type": "map", "values": None, "default": {}}},
+                    {
+                        "name": "col1",
+                        "type": {"type": "map", "values": None, "default": {}},
+                    },
                 ],
             }
         )
@@ -228,7 +234,11 @@ def test_default():
             "fields": [
                 {"name": "col1", "type": "string", "default": "test"},
                 {"name": "col2_1", "type": ["null", "string"], "default": None},
-                {"name": "col2_2", "type": ["string", "null"], "default": "default_str"},
+                {
+                    "name": "col2_2",
+                    "type": ["string", "null"],
+                    "default": "default_str",
+                },
                 {
                     "name": "col3",
                     "type": {"type": "map", "values": "string"},
@@ -258,13 +268,43 @@ def test_enums():
             "fields": [
                 {
                     "name": "c1",
-                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
                 },
             ],
         }
     )
 
     assert "class Test(BaseModel):\n" "    c1: Status" in pydantic_code
+
+    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+
+
+def test_enums_nullable():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "c1",
+                    "type": [
+                        "null",
+                        {
+                            "type": "enum",
+                            "symbols": ["passed", "failed"],
+                            "name": "Status",
+                        },
+                    ],
+                },
+            ],
+        }
+    )
+
+    assert "class Test(BaseModel):\n" "    c1: Optional[Status]" in pydantic_code
 
     assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
 
@@ -277,7 +317,11 @@ def test_enums_reuse():
             "fields": [
                 {
                     "name": "c1",
-                    "type": {"type": "enum", "symbols": ["passed", "failed"], "name": "Status"},
+                    "type": {
+                        "type": "enum",
+                        "symbols": ["passed", "failed"],
+                        "name": "Status",
+                    },
                 },
                 {"name": "c2", "type": "Status"},
             ],
@@ -304,7 +348,12 @@ def test_unions():
                         {
                             "type": "record",
                             "name": "ARecord",
-                            "fields": [{"name": "values", "type": {"type": "map", "values": "string"}}],
+                            "fields": [
+                                {
+                                    "name": "values",
+                                    "type": {"type": "map", "values": "string"},
+                                }
+                            ],
                         },
                     ],
                 },

@@ -62,10 +62,19 @@ def logical_type_handler(t: dict) -> str:
 
 def enum_type_handler(t: dict) -> str:
     """Gets the enum type of a given Avro enum type and adds it to the class registry"""
-    name = t["type"].get("name")
+    if t["type"] == "enum":
+        # comes from a unioned enum (e.g. ["null", "enum"])
+        type_info = t
+    else:
+        # comes from a direct enum
+        type_info = t["type"]
+
+    name = type_info["name"]
+    symbols = type_info["symbols"]
+
     if not ClassRegistry().has_class(name):
         enum_class = f"class {name}(str, Enum):\n"
-        for s in t["type"].get("symbols"):
+        for s in symbols:
             enum_class += f'    {s} = "{s}"\n'
         ClassRegistry().add_class(name, enum_class)
     return name
