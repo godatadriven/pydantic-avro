@@ -22,6 +22,45 @@ STRING_TYPE_MAPPING = {
     "binary": "bytes",
 }
 
+AVRO_TYPE_MAPPING = {
+    "timestamp-millis": {
+        "type": "long",
+        "logicalType": "timestamp-millis",
+    },
+    "timestamp-micros": {
+        "type": "long",
+        "logicalType": "timestamp-micros",
+    },
+    "time-millis": {
+        "type": "int",
+        "logicalType": "time-millis",
+    },
+    "time-micros": {
+        "type": "long",
+        "logicalType": "time-micros",
+    },
+    "decimal": {
+        "type": "bytes",
+        "logicalType": "decimal",
+    },
+    "uuid": {
+        "type": "string",
+        "logicalType": "uuid",
+    },
+    "int": "int",
+    "long": "long",
+    "float": "float",
+    "double": "double",
+    "boolean": "boolean",
+    "bytes": "bytes",
+    "string": "string",
+    "null": "null",
+    "date": {
+        "type": "int",
+        "logicalType": "date",
+    },
+}
+
 
 def get_definition(ref: str, schema: dict):
     """Reading definition of base schema for nested structs"""
@@ -91,6 +130,7 @@ class AvroTypeConverter:
         t = field_props.get("type")
         f = field_props.get("format")
         r = field_props.get("$ref")
+        at = field_props.get("avro_type")
         if "allOf" in field_props and len(field_props["allOf"]) == 1:
             r = field_props["allOf"][0]["$ref"]
         u = field_props.get("anyOf")
@@ -101,6 +141,13 @@ class AvroTypeConverter:
             return self._handle_references(r, avro_type_dict)
         elif t is None:
             raise ValueError(f"Field '{field_props}' does not have a defined type.")
+        elif at is not None:
+            if not isinstance(at, str) or at not in AVRO_TYPE_MAPPING:
+                raise ValueError(
+                    f"Field '{field_props}' does not have a supported avro_type. Type should be one of "
+                    f" {AVRO_TYPE_MAPPING.keys()}"
+                )
+            avro_type_dict["type"] = AVRO_TYPE_MAPPING[at]
         elif t == "array":
             return self._array_to_avro(field_props, avro_type_dict)
         elif t == "string":

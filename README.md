@@ -43,6 +43,17 @@ pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc
 pydantic-avro avro_to_pydantic --asvc /path/to/schema.asvc --output /path/to/output.py
 ```
 
+### Specify expected Avro type
+
+```python
+from datetime import datetime
+from pydantic import Field
+from pydantic_avro.base import AvroBase 
+
+class ExampleModel(AvroBase):
+    field1: int = Field(..., avro_type="long")  # Explicitly set Avro type to "long"
+    field2: datetime = Field(..., avro_type="timestamp-millis")  # Explicitly set Avro type to "timestamp-millis"
+```
 
 ### Install for developers
 
