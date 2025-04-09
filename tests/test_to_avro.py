@@ -493,7 +493,7 @@ def test_custom_name():
     }
 
 
-AllBasicTypes = Union[str, int, float, bool, None]
+AllBasicTypes = Union[str, int, float, bool]
 LeafForNestedType = Union[List[AllBasicTypes], Dict[str, AllBasicTypes]]
 RootNestedType = Union[
     Dict[str, Union[AllBasicTypes, LeafForNestedType]], List[Union[AllBasicTypes, LeafForNestedType]]
@@ -529,9 +529,8 @@ def test_complex_nested_avro():
                             "long",
                             "double",
                             "boolean",
-                            {"items": ["string", "long", "double", "boolean", "null"], "type": "array"},
-                            {"type": "map", "values": ["string", "long", "double", "boolean", "null"]},
-                            "null",
+                            {"items": ["string", "long", "double", "boolean"], "type": "array"},
+                            {"type": "map", "values": ["string", "long", "double", "boolean"]},
                         ],
                     },
                     {
@@ -540,9 +539,8 @@ def test_complex_nested_avro():
                             "long",
                             "double",
                             "boolean",
-                            {"items": ["string", "long", "double", "boolean", "null"], "type": "array"},
-                            {"type": "map", "values": ["string", "long", "double", "boolean", "null"]},
-                            "null",
+                            {"items": ["string", "long", "double", "boolean"], "type": "array"},
+                            {"type": "map", "values": ["string", "long", "double", "boolean"]},
                         ],
                         "type": "array",
                     },

@@ -61,6 +61,8 @@ AVRO_TYPE_MAPPING = {
     },
 }
 
+PRIMITVE_TYPES = ["int", "long", "float", "double", "boolean", "null"]
+
 
 def get_definition(ref: str, schema: dict):
     """Reading definition of base schema for nested structs"""
@@ -133,7 +135,7 @@ class AvroTypeConverter:
         at = field_props.get("avro_type")
         if "allOf" in field_props and len(field_props["allOf"]) == 1:
             r = field_props["allOf"][0]["$ref"]
-        if "prefixItems" in field_props and t == "array":
+        if ("prefixItems" in field_props or ("minItems" in field_props and "maxItems" in field_props)) and t == "array":
             t = "tuple"
 
         u = field_props.get("anyOf")
@@ -221,7 +223,10 @@ class AvroTypeConverter:
     def _object_to_avro(self, field_props: dict) -> dict:
         """Returns a type of an object field"""
         a = field_props.get("additionalProperties")
-        value_type = "string" if a is None else self._get_avro_type_dict(a)["type"]
+        if not a or isinstance(a, bool):
+            value_type = "string"
+        else:
+            value_type = self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}
 
     def _union_to_avro(self, field_props: list, avro_type_dict: dict) -> dict:
@@ -236,7 +241,10 @@ class AvroTypeConverter:
         """Returns a type of a tuple field"""
         prefix_items = field_props.get("prefixItems")
         if not prefix_items:
-            raise ValueError(f"Tuple Field '{field_props}' does not have any items .")
+            # Pydantic v1 there is no prefixItems, but minItems and maxItems and items is a list.
+            prefix_items = field_props.get("items")
+            if not prefix_items:
+                raise ValueError(f"Tuple Field '{field_props}' does not have any items .")
         possible_types = []
         for prefix_item in prefix_items:
             item_type = self._get_avro_type(prefix_item, avro_type_dict).get("type")
@@ -253,8 +261,9 @@ class AvroTypeConverter:
         """Returns a type of an array field"""
         items = field_props.get("items")
         # In pydantic v1. items is a list, we need to handle this case first
+        # E.g. [{'type': 'number'}, {'type': 'number'}]}
         if isinstance(items, list):
-            if len(items) != 1:
+            if not len(items):
                 raise ValueError(f"Field '{field_props}' does not have valid items.")
             items = items[0]
         if not isinstance(items, dict):
