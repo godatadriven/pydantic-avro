@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydantic-avro"
-version = "0.7.3"
+version = "0.8.0"
 description = "Converting pydantic classes to avro schemas"
 authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
 
