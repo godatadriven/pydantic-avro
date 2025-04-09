@@ -133,6 +133,9 @@ class AvroTypeConverter:
         at = field_props.get("avro_type")
         if "allOf" in field_props and len(field_props["allOf"]) == 1:
             r = field_props["allOf"][0]["$ref"]
+        if "prefixItems" in field_props and t == "array":
+            t = "tuple"
+
         u = field_props.get("anyOf")
 
         if u is not None:
@@ -162,6 +165,8 @@ class AvroTypeConverter:
             avro_type_dict["type"] = "boolean"
         elif t == "null":
             avro_type_dict["type"] = "null"
+        elif t == "tuple":
+            return self._tuple_to_avro(field_props, avro_type_dict)
         else:
             raise NotImplementedError(
                 f"Type '{t}' not support yet, "
@@ -227,23 +232,34 @@ class AvroTypeConverter:
             avro_type_dict["type"].append(t["type"])
         return avro_type_dict
 
+    def _tuple_to_avro(self, field_props: dict, avro_type_dict: dict) -> dict:
+        """Returns a type of a tuple field"""
+        prefix_items = field_props.get("prefixItems")
+        if not prefix_items:
+            raise ValueError(f"Tuple Field '{field_props}' does not have any items .")
+        possible_types = []
+        for prefix_item in prefix_items:
+            item_type = self._get_avro_type(prefix_item, avro_type_dict).get("type")
+            if not item_type:
+                raise ValueError(f"Field '{avro_type_dict}' does not have a defined type.")
+            if isinstance(item_type, list):
+                possible_types.extend([x for x in item_type if x not in possible_types])
+            elif item_type not in possible_types:
+                possible_types.append(item_type)
+        avro_type_dict["type"] = {"type": "array", "items": possible_types}
+        return avro_type_dict
+
     def _array_to_avro(self, field_props: dict, avro_type_dict: dict) -> dict:
         """Returns a type of an array field"""
-        items = field_props["items"]
+        items = field_props.get("items")
+        if not isinstance(items, dict):
+            raise ValueError(f"Field '{field_props}' does not have valid items.")
         tn = self._get_avro_type_dict(items)
         # If items in array are an object:
         if "$ref" in items:
             tn = tn["type"]
         # If items in array are a logicalType
-        if (
-            isinstance(tn, dict)
-            and isinstance(tn.get("type", {}), dict)
-            and tn.get("type", {}).get("logicalType") is not None
-        ):
+        if isinstance(tn, dict) and isinstance(tn.get("type", None), (dict, list)):
             tn = tn["type"]
-        # If items in array are an array, the structure must be corrected
-        if isinstance(tn, dict) and isinstance(tn.get("type", {}), dict) and tn.get("type", {}).get("type") == "array":
-            items = tn["type"]["items"]
-            tn = {"type": "array", "items": items}
         avro_type_dict["type"] = {"type": "array", "items": tn}
         return avro_type_dict
