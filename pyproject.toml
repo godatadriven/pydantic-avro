@@ -9,7 +9,6 @@ readme = "README.md"
 license = "MIT"
 homepage = "https://github.com/godatadriven/pydantic-avro"
 repository = "https://github.com/godatadriven/pydantic-avro"
-include = ["LICENSE"]
 
 
 packages = [{ include = "pydantic_avro", from = "src" }]
