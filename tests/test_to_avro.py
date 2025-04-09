@@ -57,6 +57,7 @@ class TestModel(AvroBase):
     c12: dict
     c13: Status = Field(..., description="This is Status")
     c14: bytes
+    c15: datetime = Field(..., avro_type="timestamp-millis")
 
 
 class ListofLists(AvroBase):
@@ -134,11 +135,12 @@ def test_avro():
                 "doc": "This is Status",
             },
             {"name": "c14", "type": "bytes"},
+            {"name": "c15", "type": {"type": "long", "logicalType": "timestamp-millis"}},
         ],
     }
     # Reading schema with avro library to be sure format is correct
     schema = avro_schema.parse(json.dumps(result))
-    assert len(schema.fields) == 14
+    assert len(schema.fields) == 15
 
 
 def test_avro_write():
@@ -157,6 +159,7 @@ def test_avro_write():
         c12={},
         c13=Status.passed,
         c14=bytes(),
+        c15=datetime(2000, 1, 1, 12, 34, 56, microsecond=500_000, tzinfo=timezone.utc),
     )
     avro_schema = TestModel.avro_schema()
     parsed_schema = parse_schema(avro_schema)
