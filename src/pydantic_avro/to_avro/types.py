@@ -27,6 +27,38 @@ AVRO_TYPE_MAPPING = {
         "type": "long",
         "logicalType": "timestamp-millis",
     },
+    "timestamp-micros": {
+        "type": "long",
+        "logicalType": "timestamp-micros",
+    },
+    "time-millis": {
+        "type": "int",
+        "logicalType": "time-millis",
+    },
+    "time-micros": {
+        "type": "long",
+        "logicalType": "time-micros",
+    },
+    "decimal": {
+        "type": "bytes",
+        "logicalType": "decimal",
+    },
+    "uuid": {
+        "type": "string",
+        "logicalType": "uuid",
+    },
+    "int": "int",
+    "long": "long",
+    "float": "float",
+    "double": "double",
+    "boolean": "boolean",
+    "bytes": "bytes",
+    "string": "string",
+    "null": "null",
+    "date": {
+        "type": "int",
+        "logicalType": "date",
+    },
 }
 
 
