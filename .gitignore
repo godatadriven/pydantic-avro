@@ -11,3 +11,5 @@ __pycache__
 .coverage
 .python-version
 coverage.xml
+
+.DS_Store
