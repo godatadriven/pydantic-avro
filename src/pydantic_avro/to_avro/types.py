@@ -252,6 +252,11 @@ class AvroTypeConverter:
     def _array_to_avro(self, field_props: dict, avro_type_dict: dict) -> dict:
         """Returns a type of an array field"""
         items = field_props.get("items")
+        # In pydantic v1. items is a list, we need to handle this case first
+        if isinstance(items, list):
+            if len(items) != 1:
+                raise ValueError(f"Field '{field_props}' does not have valid items.")
+            items = items[0]
         if not isinstance(items, dict):
             raise ValueError(f"Field '{field_props}' does not have valid items.")
         tn = self._get_avro_type_dict(items)
