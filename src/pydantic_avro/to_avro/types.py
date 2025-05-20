@@ -143,9 +143,9 @@ class AvroTypeConverter:
 
         if u is not None:
             return self._union_to_avro(u, avro_type_dict, discriminator)
-        if o is not None:
+        elif o is not None:
             return self._union_to_avro(o, avro_type_dict, discriminator)
-        if r is not None:
+        elif r is not None:
             return self._handle_references(r, avro_type_dict)
         elif t is None:
             raise ValueError(f"Field '{field_props}' does not have a defined type.")

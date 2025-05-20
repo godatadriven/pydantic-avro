@@ -668,5 +668,5 @@ def test_discriminated_union_list():
                     "type": "array",
                 },
             }
-        ]
+        ],
     }
