@@ -137,12 +137,15 @@ class AvroTypeConverter:
             r = field_props["allOf"][0]["$ref"]
         if ("prefixItems" in field_props or ("minItems" in field_props and "maxItems" in field_props)) and t == "array":
             t = "tuple"
-
         u = field_props.get("anyOf")
+        o = field_props.get("oneOf")
+        discriminator = field_props.get("discriminator")
 
         if u is not None:
-            return self._union_to_avro(u, avro_type_dict)
-        elif r is not None:
+            return self._union_to_avro(u, avro_type_dict, discriminator)
+        if o is not None:
+            return self._union_to_avro(o, avro_type_dict, discriminator)
+        if r is not None:
             return self._handle_references(r, avro_type_dict)
         elif t is None:
             raise ValueError(f"Field '{field_props}' does not have a defined type.")
@@ -229,8 +232,13 @@ class AvroTypeConverter:
             value_type = self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}
 
-    def _union_to_avro(self, field_props: list, avro_type_dict: dict) -> dict:
-        """Returns a type of a union field"""
+    def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: dict | None = None) -> dict:
+        """Returns a type of a union field, including discriminated unions"""
+        # Handle discriminated unions
+        if discriminator is not None:
+            return self._discriminated_union_to_avro(field_props, avro_type_dict, discriminator)
+
+        # Standard union handling (unchanged)
         avro_type_dict["type"] = []
         for union_element in field_props:
             t = self._get_avro_type_dict(union_element)
@@ -276,4 +284,40 @@ class AvroTypeConverter:
         if isinstance(tn, dict) and isinstance(tn.get("type", None), (dict, list)):
             tn = tn["type"]
         avro_type_dict["type"] = {"type": "array", "items": tn}
+        return avro_type_dict
+
+    def _discriminated_union_to_avro(self, variants: list, avro_type_dict: dict, discriminator: dict) -> dict:
+        """Handles discriminated unions with a discriminator field"""
+        discriminator_property = discriminator.get("propertyName", "type")
+        variant_types = []
+
+        # Process each variant in the union
+        for variant in variants:
+            # Get the discriminator value for this variant
+            disc_value = None
+            if "properties" in variant and discriminator_property in variant.get("properties", {}):
+                prop = variant["properties"][discriminator_property]
+                if "const" in prop:
+                    disc_value = prop["const"]
+                elif "enum" in prop and len(prop["enum"]) == 1:
+                    disc_value = prop["enum"][0]
+
+            # If we can't determine the discriminator value, generate a regular record
+            if disc_value is None:
+                variant_type = self._get_avro_type_dict(variant)
+            else:
+                # Create a named record for this variant
+                variant_name = f"{disc_value}Variant"
+                if "$ref" in variant:
+                    ref_schema = get_definition(variant["$ref"], self.root_schema)
+                    variant_fields = self.fields_to_avro_dicts(ref_schema)
+                else:
+                    variant_fields = self.fields_to_avro_dicts(variant)
+
+                variant_type = {"type": {"type": "record", "name": variant_name, "fields": variant_fields}}
+
+            variant_types.append(variant_type["type"])
+
+        # Set the union of all variant types
+        avro_type_dict["type"] = variant_types
         return avro_type_dict

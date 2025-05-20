@@ -5,7 +5,7 @@ import tempfile
 import uuid
 from datetime import date, datetime, time, timezone
 from pprint import pprint
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Annotated, Dict, List, Literal, Optional, Tuple, Type, Union
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -584,3 +584,89 @@ def test_tuple_avro():
 
     # Also test parsing with fast avro
     parse_schema(result)
+
+
+class DiscriminatedModelFoo(AvroBase):
+    discriminator: Literal["foo"] = "foo"
+
+
+class DiscriminatedModelBar(AvroBase):
+    discriminator: Literal["bar"] = "bar"
+
+
+DiscriminatedUnion = Annotated[
+    Union[DiscriminatedModelFoo, DiscriminatedModelBar], Field(discriminator="discriminator")
+]
+
+
+class DiscriminatedModel(AvroBase):
+    du: DiscriminatedUnion = Field(...)
+
+
+class DiscriminatedModelList(AvroBase):
+    dus: List[DiscriminatedUnion] = Field(...)
+
+
+def test_discriminated_union():
+    result = DiscriminatedModel.avro_schema()
+    pprint(result)
+    assert result == {
+        "type": "record",
+        "name": "DiscriminatedModel",
+        "namespace": "DiscriminatedModel",
+        "fields": [
+            {
+                "name": "du",
+                "type": [
+                    {
+                        "name": "DiscriminatedModelFoo",
+                        "type": "record",
+                        "fields": [{"name": "discriminator", "type": "string", "default": "foo"}],
+                    },
+                    {
+                        "name": "DiscriminatedModelBar",
+                        "type": "record",
+                        "fields": [{"name": "discriminator", "type": "string", "default": "bar"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    # Reading schema with avro library to be sure format is correct
+    schema = avro_schema.parse(json.dumps(result))
+    assert len(schema.fields) == 1
+
+    # Also test parsing with fast avro
+    parse_schema(result)
+
+
+def test_discriminated_union_list():
+    result = DiscriminatedModelList.avro_schema()
+    pprint(result)
+
+    assert result == {
+        "type": "record",
+        "name": "DiscriminatedModelList",
+        "namespace": "DiscriminatedModelList",
+        "fields": [
+            {
+                "name": "dus",
+                "type": {
+                    "items": [
+                        {
+                            "name": "DiscriminatedModelFoo",
+                            "type": "record",
+                            "fields": [{"name": "discriminator", "type": "string", "default": "foo"}],
+                        },
+                        {
+                            "name": "DiscriminatedModelBar",
+                            "type": "record",
+                            "fields": [{"name": "discriminator", "type": "string", "default": "bar"}],
+                        },
+                    ],
+                    "type": "array",
+                },
+            }
+        ]
+    }
