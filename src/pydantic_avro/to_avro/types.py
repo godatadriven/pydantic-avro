@@ -232,7 +232,7 @@ class AvroTypeConverter:
             value_type = self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}
 
-    def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: dict | None = None) -> dict:
+    def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: Optional[dict] = None) -> dict:
         """Returns a type of a union field, including discriminated unions"""
         # Handle discriminated unions
         if discriminator is not None:

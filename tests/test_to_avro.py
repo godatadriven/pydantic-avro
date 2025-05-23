@@ -1,11 +1,12 @@
 import enum
 import json
 import os
+import sys
 import tempfile
 import uuid
 from datetime import date, datetime, time, timezone
 from pprint import pprint
-from typing import Annotated, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 from uuid import UUID
 
 from avro import schema as avro_schema
@@ -14,6 +15,11 @@ from pydantic import Field
 
 from pydantic_avro.base import AvroBase
 from pydantic_avro.to_avro.config import PYDANTIC_V2
+
+if sys.version_info >= (3, 10):
+    from typing import Annotated
+else:
+    from typing_extensions import Annotated
 
 
 def dump(obj: AvroBase):
@@ -600,11 +606,10 @@ DiscriminatedUnion = Annotated[
 
 
 class DiscriminatedModel(AvroBase):
-    du: DiscriminatedUnion = Field(...)
-
+    du: DiscriminatedUnion
 
 class DiscriminatedModelList(AvroBase):
-    dus: List[DiscriminatedUnion] = Field(...)
+    dus: List[DiscriminatedUnion]
 
 
 def test_discriminated_union():
