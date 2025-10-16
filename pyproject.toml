@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydantic-avro"
-version = "0.8.1"
+version = "0.9.1"
 description = "Converting pydantic classes to avro schemas"
 authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
 
@@ -18,7 +18,7 @@ python = ">=3.8.1,<4.0"
 pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
-coverage = { version = "^7.2.2", extras = ["toml"] }
+coverage = { version = "^7.6.1", extras = ["toml"] }
 pytest = "^8.3.5"
 pytest-mock = "^3.10.0"
 pyproject-flake8 = "^7.0.0"
@@ -28,6 +28,7 @@ pytest-cov = "^5.0.0"
 mypy = "^1.1.1"
 avro = "^1.12.0"
 fastavro = "^1.8.1"
+typing-extensions = "^4.13.2"
 
 [tool.poetry.scripts]
 pydantic-avro = "pydantic_avro.__main__:root_main"
