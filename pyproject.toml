@@ -18,7 +18,7 @@ python = ">=3.8.1,<4.0"
 pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
-coverage = { version = "^7.2.2", extras = ["toml"] }
+coverage = { version = "^7.6.1", extras = ["toml"] }
 pytest = "^8.3.5"
 pytest-mock = "^3.10.0"
 pyproject-flake8 = "^7.0.0"
