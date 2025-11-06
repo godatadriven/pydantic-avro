@@ -132,7 +132,7 @@ def generate_field_string(field: dict) -> str:
 
 def get_pydantic_type(t: Union[str, dict]) -> str:
     """Get the Pydantic type for a given Avro type"""
-    if isinstance(t, str):
+    if isinstance(t, str) or isinstance(t, list):
         t = {"type": t}
 
     if isinstance(t.get("type"), str):

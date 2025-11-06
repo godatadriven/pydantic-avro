@@ -146,6 +146,79 @@ def test_avsc_to_pydantic_optional_map_primitive_value():
     assert 'col1: Optional[Dict[str, string]] = "null"' in pydantic_code
 
 
+def test_avsc_to_pydantic_optional_list_with_optional_records():
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "PyScGenClass",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "document_list",
+                    "type": [
+                        "null",
+                        {
+                            "type": "array",
+                            "items": [
+                                "null",
+                                {
+                                    "name": "document_list_record",
+                                    "type": "record",
+                                    "fields": [
+                                        {
+                                            "name": "float",
+                                            "type": [
+                                                "null",
+                                                "float"
+                                            ]
+                                        },
+                                        {
+                                            "name": "int",
+                                            "type": [
+                                                "null",
+                                                "int"
+                                            ]
+                                        },
+                                        {
+                                            "name": "string",
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    )
+    assert 'document_list: Optional[List[Optional[document_list_record]]]' in pydantic_code
+
+
+def test_avsc_to_pydantic_map_with_union_types_and_list_of_values():
+    pydantic_code = avsc_to_pydantic(
+       {
+          "namespace": "com.example",
+          "type": "record",
+          "name": "TestEvent",
+          "fields": [
+            {
+              "name": "event_data",
+              "type": {
+                "type": "map",
+                "values": ["null", "string"]
+              },
+              "default": {}
+            }
+          ]
+        }
+    )
+    print(pydantic_code)
+    assert 'event_data: Dict[str, Optional[str]] = {}' in pydantic_code
+
+
 def test_avsc_to_pydantic_logical():
     pydantic_code = avsc_to_pydantic(
         {
