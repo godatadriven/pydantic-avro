@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -14,7 +14,7 @@ class AvroBase(BaseModel):
         cls,
         by_alias: bool = True,
         namespace: Optional[str] = None,
-        mode: Union[Literal["validation", "serialization"], str] = "serialization",
+        mode: Literal["validation", "serialization"] = "serialization",
     ) -> dict:
         """Returns the avro schema for the pydantic class
 
@@ -28,6 +28,11 @@ class AvroBase(BaseModel):
         if PYDANTIC_V2:
             schema = cls.model_json_schema(by_alias=by_alias, mode=mode)
         else:
+            if mode != "serialization":
+                raise ValueError(
+                    f"The 'mode' parameter is only supported in Pydantic v2. "
+                    f"Pydantic v1 does not support different schema modes."
+                )
             schema = cls.schema(by_alias=by_alias)
 
         if namespace is None:
