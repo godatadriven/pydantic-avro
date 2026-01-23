@@ -675,3 +675,34 @@ def test_discriminated_union_list():
             }
         ],
     }
+
+
+def test_mode_parameter():
+    """Test that the mode parameter works correctly and defaults to serialization"""
+    if not PYDANTIC_V2:
+        # Skip for Pydantic V1
+        return
+
+    # Test with serialization_alias
+    class ModelWithSerializationAlias(AvroBase):
+        field1: str = Field(serialization_alias="field_one")
+        field2: int = Field(alias="field_two_alias")
+
+    # Default mode should be serialization
+    result_default = ModelWithSerializationAlias.avro_schema()
+    # Should use serialization_alias for field1
+    assert result_default["fields"][0]["name"] == "field_one"
+    # Should use alias for field2 (applies to both validation and serialization)
+    assert result_default["fields"][1]["name"] == "field_two_alias"
+
+    # Explicit serialization mode
+    result_serialization = ModelWithSerializationAlias.avro_schema(mode="serialization")
+    assert result_serialization["fields"][0]["name"] == "field_one"
+    assert result_serialization["fields"][1]["name"] == "field_two_alias"
+
+    # Validation mode should not use serialization_alias
+    result_validation = ModelWithSerializationAlias.avro_schema(mode="validation")
+    # Should use original field name, not serialization_alias
+    assert result_validation["fields"][0]["name"] == "field1"
+    # Should still use alias for field2
+    assert result_validation["fields"][1]["name"] == "field_two_alias"
