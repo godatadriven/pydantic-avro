@@ -706,3 +706,51 @@ def test_mode_parameter():
     assert result_validation["fields"][0]["name"] == "field1"
     # Should still use alias for field2
     assert result_validation["fields"][1]["name"] == "field_two_alias"
+
+
+def test_optional_with_avro_type():
+    """Test that avro_type is properly propagated to Optional fields (unions)"""
+    
+    class OptionalDatetimeModel(AvroBase):
+        my_date: Optional[datetime] = Field(None, json_schema_extra={"avro_type": "timestamp-millis"})
+        my_time: Optional[time] = Field(None, json_schema_extra={"avro_type": "time-millis"})
+    
+    result = OptionalDatetimeModel.avro_schema()
+    
+    # Check that timestamp-millis is correctly applied to the non-null branch
+    my_date_field = result["fields"][0]
+    assert my_date_field["name"] == "my_date"
+    assert my_date_field["type"][0] == "null"
+    assert my_date_field["type"][1] == {"type": "long", "logicalType": "timestamp-millis"}
+    assert my_date_field["default"] is None
+    
+    # Check that time-millis is correctly applied to the non-null branch
+    my_time_field = result["fields"][1]
+    assert my_time_field["name"] == "my_time"
+    assert my_time_field["type"][0] == "null"
+    assert my_time_field["type"][1] == {"type": "int", "logicalType": "time-millis"}
+    assert my_time_field["default"] is None
+
+
+def test_union_with_avro_type():
+    """Test that avro_type is properly propagated to Union fields with multiple non-null types"""
+    
+    class UnionWithAvroType(AvroBase):
+        # Union of None, str, and datetime with avro_type
+        field1: Union[None, str, datetime] = Field(None, json_schema_extra={"avro_type": "timestamp-millis"})
+    
+    result = UnionWithAvroType.avro_schema()
+    
+    field1 = result["fields"][0]
+    assert field1["name"] == "field1"
+    # The union should contain null, string, and the datetime with timestamp-millis
+    # Note: The avro_type should only apply to the datetime type, not to string
+    field_types = field1["type"]
+    assert "null" in field_types
+    assert "string" in field_types
+    # Check for timestamp-millis in the union
+    has_timestamp_millis = any(
+        isinstance(t, dict) and t.get("logicalType") == "timestamp-millis"
+        for t in field_types
+    )
+    assert has_timestamp_millis

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set
 
 from pydantic_avro.to_avro.config import DEFS_NAME
@@ -142,9 +143,9 @@ class AvroTypeConverter:
         discriminator = field_props.get("discriminator")
 
         if u is not None:
-            return self._union_to_avro(u, avro_type_dict, discriminator)
+            return self._union_to_avro(u, avro_type_dict, discriminator, parent_avro_type=at)
         elif o is not None:
-            return self._union_to_avro(o, avro_type_dict, discriminator)
+            return self._union_to_avro(o, avro_type_dict, discriminator, parent_avro_type=at)
         elif r is not None:
             return self._handle_references(r, avro_type_dict)
         elif t is None:
@@ -232,15 +233,37 @@ class AvroTypeConverter:
             value_type = self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}
 
-    def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: Optional[dict] = None) -> dict:
+    def _should_propagate_avro_type(self, union_element: dict, parent_avro_type: str) -> bool:
+        """Determine if parent avro_type should be propagated to this union element"""
+        # Don't propagate to null types or elements that already have avro_type
+        if union_element.get("type") == "null" or "avro_type" in union_element:
+            return False
+        
+        element_format = union_element.get("format")
+        
+        # Only propagate temporal avro_types to date-time formatted elements
+        temporal_avro_types = {"timestamp-millis", "timestamp-micros", "time-millis", "time-micros", "date"}
+        if parent_avro_type in temporal_avro_types:
+            return element_format in {"date-time", "date", "time"}
+        
+        # For other avro_types, only propagate if there's no format (meaning it's not already specialized)
+        return element_format is None
+
+    def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: Optional[dict] = None, parent_avro_type: Optional[str] = None) -> dict:
         """Returns a type of a union field, including discriminated unions"""
         # Handle discriminated unions
         if discriminator is not None:
             return self._discriminated_union_to_avro(field_props, avro_type_dict, discriminator)
 
-        # Standard union handling (unchanged)
+        # Standard union handling
         avro_type_dict["type"] = []
         for union_element in field_props:
+            # Propagate parent avro_type to compatible union elements
+            if parent_avro_type is not None and self._should_propagate_avro_type(union_element, parent_avro_type):
+                # Create a deep copy to avoid modifying the original
+                union_element = deepcopy(union_element)
+                union_element["avro_type"] = parent_avro_type
+            
             t = self._get_avro_type_dict(union_element)
             avro_type_dict["type"].append(t["type"])
         return avro_type_dict
