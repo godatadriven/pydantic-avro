@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set
 
 from pydantic_avro.to_avro.config import DEFS_NAME
@@ -232,6 +233,22 @@ class AvroTypeConverter:
             value_type = self._get_avro_type_dict(a)["type"]
         return {"type": "map", "values": value_type}
 
+    def _should_propagate_avro_type(self, union_element: dict, parent_avro_type: str) -> bool:
+        """Determine if parent avro_type should be propagated to this union element"""
+        # Don't propagate to null types or elements that already have avro_type
+        if union_element.get("type") == "null" or "avro_type" in union_element:
+            return False
+        
+        element_format = union_element.get("format")
+        
+        # Only propagate temporal avro_types to date-time formatted elements
+        temporal_avro_types = {"timestamp-millis", "timestamp-micros", "time-millis", "time-micros", "date"}
+        if parent_avro_type in temporal_avro_types:
+            return element_format in {"date-time", "date", "time"}
+        
+        # For other avro_types, only propagate if there's no format (meaning it's not already specialized)
+        return element_format is None
+
     def _union_to_avro(self, field_props: list, avro_type_dict: dict, discriminator: Optional[dict] = None, parent_avro_type: Optional[str] = None) -> dict:
         """Returns a type of a union field, including discriminated unions"""
         # Handle discriminated unions
@@ -241,25 +258,10 @@ class AvroTypeConverter:
         # Standard union handling
         avro_type_dict["type"] = []
         for union_element in field_props:
-            # If the union element doesn't have an avro_type and parent has one, try to propagate it
-            # Only propagate to non-null types that would naturally map to a type compatible with the avro_type
-            should_propagate = False
-            if parent_avro_type is not None and union_element.get("type") != "null" and "avro_type" not in union_element:
-                # Check if this union element is a date-time type that could use the parent avro_type
-                element_type = union_element.get("type")
-                element_format = union_element.get("format")
-                
-                # Only propagate temporal avro_types to date-time formatted elements
-                temporal_avro_types = {"timestamp-millis", "timestamp-micros", "time-millis", "time-micros", "date"}
-                if parent_avro_type in temporal_avro_types and element_format in {"date-time", "date", "time"}:
-                    should_propagate = True
-                # For other avro_types, only propagate if there's no format (meaning it's not already specialized)
-                elif parent_avro_type not in temporal_avro_types and element_format is None:
-                    should_propagate = True
-            
-            if should_propagate:
-                # Create a copy of the union element to avoid modifying the original
-                union_element = union_element.copy()
+            # Propagate parent avro_type to compatible union elements
+            if parent_avro_type is not None and self._should_propagate_avro_type(union_element, parent_avro_type):
+                # Create a deep copy to avoid modifying the original
+                union_element = deepcopy(union_element)
                 union_element["avro_type"] = parent_avro_type
             
             t = self._get_avro_type_dict(union_element)
