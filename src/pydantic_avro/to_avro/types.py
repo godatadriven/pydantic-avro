@@ -134,6 +134,13 @@ class AvroTypeConverter:
         f = field_props.get("format")
         r = field_props.get("$ref")
         at = field_props.get("avro_type")
+        
+        # For Pydantic v1, check json_schema_extra for avro_type
+        if at is None and "json_schema_extra" in field_props:
+            json_schema_extra = field_props.get("json_schema_extra")
+            if isinstance(json_schema_extra, dict):
+                at = json_schema_extra.get("avro_type")
+        
         if "allOf" in field_props and len(field_props["allOf"]) == 1:
             r = field_props["allOf"][0]["$ref"]
         if ("prefixItems" in field_props or ("minItems" in field_props and "maxItems" in field_props)) and t == "array":
