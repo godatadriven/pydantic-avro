@@ -11,7 +11,7 @@ from uuid import UUID
 
 from avro import schema as avro_schema
 from fastavro import parse_schema, reader, writer
-from pydantic import Field
+from pydantic import AnyUrl, Field, IPvAnyAddress
 
 from pydantic_avro.base import AvroBase
 from pydantic_avro.to_avro.config import PYDANTIC_V2
@@ -754,3 +754,22 @@ def test_union_with_avro_type():
         for t in field_types
     )
     assert has_timestamp_millis
+
+
+class StringFormatModel(AvroBase):
+    # Pydantic emits string "format"s that Avro has no dedicated type for:
+    #   AnyUrl -> "uri", IPvAnyAddress -> "ipvanyaddress" (EmailStr -> "email").
+    url: AnyUrl
+    ip: IPvAnyAddress
+
+
+def test_unmapped_string_format_falls_back_to_string():
+    # Regression: previously these raised KeyError (e.g. KeyError: 'uri') because
+    # an unmapped JSON-Schema string "format" indexed STRING_TYPE_MAPPING directly.
+    # Such formats must degrade to a plain Avro "string".
+    result = StringFormatModel.avro_schema()
+    field_types = {f["name"]: f["type"] for f in result["fields"]}
+    assert field_types["url"] == "string"
+    assert field_types["ip"] == "string"
+    # The produced schema must still be valid Avro.
+    parse_schema(result)
