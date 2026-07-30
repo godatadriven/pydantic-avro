@@ -219,7 +219,11 @@ class AvroTypeConverter:
         """Returns a type of a string field"""
         if not f:
             return "string"
-        return STRING_TYPE_MAPPING[f]
+        # Avro has no dedicated type for many JSON-Schema string formats that
+        # Pydantic emits (e.g. "email", "uri", "ipvanyaddress" from EmailStr,
+        # AnyUrl, IPvAnyAddress). Fall back to a plain Avro "string" for any
+        # unmapped format instead of raising a KeyError.
+        return STRING_TYPE_MAPPING.get(f, "string")
 
     @staticmethod
     def _integer_to_avro(field_props: dict) -> str:
