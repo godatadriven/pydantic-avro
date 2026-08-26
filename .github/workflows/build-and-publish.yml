@@ -1,8 +1,6 @@
 name: Build and Publish
 on:
   workflow_dispatch: # Only manual trigger and only for the main branch
-    branches:
-    - main
     inputs:
       bump_level:
         type: choice
@@ -18,56 +16,56 @@ permissions:
 
 jobs:
   build-and-publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: release       # required for PyPI trusted publishing (OIDC)
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GIT_TOKEN_DANIEL }}
+        token: ${{ secrets.GIT_TOKEN_DANIEL }}  # needed to push the bump commit to protected main
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v3
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
+        python-version: "3.12"
 
-    - name: Install dependencies
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python3 - --version 1.8.3
+
+    - name: Bump version, tag and push
       run: |
-        curl -sSL https://install.python-poetry.org | python3 - --version 1.2.2
+        set -eu
+        BUMP_LEVEL='${{ github.event.inputs.bump_level }}'
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
 
-    - name: Build and publish
-      run: |
-        set -euv
-        
-        BUMP_LEVEL=${{ github.event.inputs.bump_level }}
-        echo "bump level: ${BUMP_LEVEL}"
-        git config --local user.email "Bumpversion"
-        git config --local user.name "Bumpversion"
-
-        # Version bump
-
-        NEW_VERSION=$(poetry version -s ${BUMP_LEVEL})
-        echo ${NEW_VERSION}
-        git add pyproject.toml poetry.lock
+        NEW_VERSION=$(poetry version -s "${BUMP_LEVEL}")
+        echo "New version: ${NEW_VERSION}"
+        git add pyproject.toml
         git commit -m "Bump version to ${NEW_VERSION}"
         git tag "v${NEW_VERSION}"
 
-        git push -f  
-        git push --tags -f
-        
-        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-        poetry publish --build
-        
+        git push origin HEAD:main
+        git push origin "v${NEW_VERSION}"
+
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
 
-    - name: Create Release
-      uses: actions/create-release@v1
+    - name: Build distributions
+      run: poetry build
+
+    - name: Publish to PyPI (trusted publishing)
+      uses: pypa/gh-action-pypi-publish@release/v1
+
+    - name: Create GitHub Release with generated notes
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ env.NEW_VERSION }}
-        release_name: v${{ env.NEW_VERSION }}
-        body: |
-          pypi package: https://pypi.org/project/pydantic-avro/${{ env.NEW_VERSION }}/
-        draft: false
-        prerelease: false
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create "v${NEW_VERSION}" \
+          --title "v${NEW_VERSION}" \
+          --generate-notes \
+          --notes "PyPI package: https://pypi.org/project/pydantic-avro/${NEW_VERSION}/"
