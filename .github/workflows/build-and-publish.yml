@@ -18,10 +18,8 @@ jobs:
   build-and-publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: release       # required for PyPI trusted publishing (OIDC)
     permissions:
       contents: write
-      id-token: write
 
     steps:
     - name: Checkout
@@ -58,8 +56,12 @@ jobs:
     - name: Build distributions
       run: poetry build
 
-    - name: Publish to PyPI (trusted publishing)
+    # TODO: switch to trusted publishing (OIDC) once a project owner on PyPI
+    # can add a trusted publisher for this repo
+    - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_TOKEN }}
 
     - name: Create GitHub Release with generated notes
       env:
