@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydantic-avro"
-version = "0.10.0"
+version = "0.11.0"
 description = "Converting pydantic classes to avro schemas"
 authors = ["Peter van 't Hof' <peter.vanthof@godatadriven.com>"]
 
@@ -14,28 +14,28 @@ repository = "https://github.com/godatadriven/pydantic-avro"
 packages = [{ include = "pydantic_avro", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.10,<4.0"
 pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
 coverage = { version = "^7.6.1", extras = ["toml"] }
-pytest = "^8.3.5"
-pytest-mock = "^3.10.0"
+pytest = "^9.0.3"
+pytest-mock = "^3.15.1"
 pyproject-flake8 = "^7.0.0"
 isort = "^5.10.0"
-black = "24.8.0"
-pytest-cov = "^5.0.0"
+black = "^26.3.1"
+pytest-cov = "^7.0.0"
 mypy = "^1.1.1"
-avro = "^1.12.0"
-fastavro = "^1.8.1"
-typing-extensions = "^4.13.2"
+avro = "^1.12.2"
+fastavro = "^1.12.2"
+typing-extensions = "^4.16.0"
 
 [tool.poetry.scripts]
 pydantic-avro = "pydantic_avro.__main__:root_main"
 
 [tool.black]
 line-length = 120
-target-version = ["py38"]
+target-version = ["py310"]
 
 [tool.pytest.ini_options]
 addopts = "--junitxml=junit/report.xml"
@@ -62,7 +62,7 @@ line_length = 120
 
 [tool.mypy]
 files = "src/"
-python_version = "3.9"
+python_version = "3.10"
 ignore_missing_imports = "true"
 
 [build-system]
