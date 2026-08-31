@@ -143,7 +143,7 @@ def test_avsc_to_pydantic_optional_map_primitive_value():
             ],
         }
     )
-    assert 'col1: Optional[Dict[str, string]] = "null"' in pydantic_code
+    assert 'col1: Optional[Dict[str, str]] = "null"' in pydantic_code
 
 
 def test_avsc_to_pydantic_optional_list_with_optional_records():
