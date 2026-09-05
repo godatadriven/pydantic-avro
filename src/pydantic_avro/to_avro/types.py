@@ -85,11 +85,50 @@ def set_nullability(avro_type_dict: dict) -> dict:
     return avro_type_dict
 
 
-def null_to_first_element(avro_type_dict: dict) -> dict:
-    """Set the null as the first element in the list as per avro schema requirements"""
-    if type(avro_type_dict["type"]) is list and "null" in avro_type_dict["type"]:
-        avro_type_dict["type"].remove("null")
-        avro_type_dict["type"].insert(0, "null")
+# Python type of a field default -> Avro base types whose union branch may carry that default.
+# ``bool`` is listed before ``int`` because it is an ``int`` subclass.
+_DEFAULT_TYPE_CANDIDATES = (
+    (bool, ("boolean",)),
+    (int, ("long", "int")),
+    (float, ("double", "float")),
+    (str, ("string", "enum")),
+    (bytes, ("bytes",)),
+    (list, ("array",)),
+    (dict, ("record", "map")),
+)
+
+
+def _branch_base_type(branch: Any) -> Optional[str]:
+    """Base Avro type of a union branch: ``"long"`` for both ``"long"`` and ``{"type": "long", "logicalType": ...}``."""
+    if isinstance(branch, str):
+        return branch
+    if isinstance(branch, dict) and isinstance(branch.get("type"), str):
+        return branch["type"]
+    return None
+
+
+def order_union_for_default(avro_type_dict: dict) -> dict:
+    """Order a union so that its first branch matches the field default, as the Avro spec requires.
+
+    A default of ``None`` keeps ``null`` first. Any other default moves ``null`` last and, when the
+    default's Python type identifies one of the remaining branches, promotes that branch to the front.
+    """
+    union = avro_type_dict.get("type")
+    if type(union) is not list or "null" not in union:
+        return avro_type_dict
+    union.remove("null")
+    default = avro_type_dict.get("default")
+    if default is None:
+        union.insert(0, "null")
+        return avro_type_dict
+    union.append("null")
+    for py_type, avro_names in _DEFAULT_TYPE_CANDIDATES:
+        if isinstance(default, py_type):
+            for i, branch in enumerate(union):
+                if _branch_base_type(branch) in avro_names:
+                    union.insert(0, union.pop(i))
+                    break
+            break
     return avro_type_dict
 
 
@@ -113,7 +152,7 @@ class AvroTypeConverter:
             avro_type_dict["name"] = name
             if name not in required:
                 set_nullability(avro_type_dict)
-                avro_type_dict = null_to_first_element(avro_type_dict)
+                avro_type_dict = order_union_for_default(avro_type_dict)
 
             fields.append(avro_type_dict)
         return fields
