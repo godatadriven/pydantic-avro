@@ -24,7 +24,7 @@ def avsc_to_pydantic(schema: dict) -> str:
     file_content = """
 from datetime import date, datetime, time
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import List, Optional, Dict, Union
 from uuid import UUID
 

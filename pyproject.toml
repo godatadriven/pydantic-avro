@@ -14,7 +14,7 @@ repository = "https://github.com/godatadriven/pydantic-avro"
 packages = [{ include = "pydantic_avro", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.11,<4.0"
 pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
@@ -35,7 +35,7 @@ pydantic-avro = "pydantic_avro.__main__:root_main"
 
 [tool.black]
 line-length = 120
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.pytest.ini_options]
 addopts = "--junitxml=junit/report.xml"
@@ -62,7 +62,7 @@ line_length = 120
 
 [tool.mypy]
 files = "src/"
-python_version = "3.10"
+python_version = "3.11"
 ignore_missing_imports = "true"
 
 [build-system]
