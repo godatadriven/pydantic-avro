@@ -353,7 +353,7 @@ def test_enums():
 
     assert "class Test(BaseModel):\n" "    c1: Status" in pydantic_code
 
-    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+    assert "class Status(StrEnum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
 
 
 def test_enums_nullable():
@@ -379,7 +379,7 @@ def test_enums_nullable():
 
     assert "class Test(BaseModel):\n" "    c1: Optional[Status]" in pydantic_code
 
-    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+    assert "class Status(StrEnum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
 
 
 def test_enums_reuse():
@@ -403,7 +403,7 @@ def test_enums_reuse():
 
     assert "class Test(BaseModel):\n" "    c1: Status\n" "    c2: Status" in pydantic_code
 
-    assert "class Status(str, Enum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
+    assert "class Status(StrEnum):\n" '    passed = "passed"\n' '    failed = "failed"' in pydantic_code
 
 
 def test_unions():
@@ -477,7 +477,7 @@ def test_convert_file(tmp_path):
     expected_output = """
 from datetime import date, datetime, time
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import List, Optional, Dict, Union
 from uuid import UUID
 
@@ -488,3 +488,20 @@ class Test(BaseModel):
     pass
 """
     assert output_file.read_text() == expected_output
+
+
+def test_generated_enum_is_a_strenum_and_str_returns_the_value():
+    """Regression for #162: on Python >= 3.11 ``str()`` of a ``(str, Enum)`` member is ``"Status.passed"``,
+    so generated enums must be ``StrEnum`` for ``str(member)`` to be the Avro symbol."""
+    pydantic_code = avsc_to_pydantic(
+        {
+            "name": "Test",
+            "type": "record",
+            "fields": [{"name": "status", "type": {"type": "enum", "name": "Status", "symbols": ["passed", "failed"]}}],
+        }
+    )
+    namespace: dict = {}
+    exec(pydantic_code, namespace)
+    assert str(namespace["Status"].passed) == "passed"
+    assert f"{namespace['Status'].failed}" == "failed"
+    assert namespace["Test"](status="passed").status is namespace["Status"].passed

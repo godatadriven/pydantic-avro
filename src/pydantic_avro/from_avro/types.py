@@ -70,7 +70,7 @@ def enum_type_handler(t: dict) -> str:
     symbols = type_info["symbols"]
 
     if not ClassRegistry().has_class(name):
-        enum_class = f"class {name}(str, Enum):\n"
+        enum_class = f"class {name}(StrEnum):\n"
         for s in symbols:
             enum_class += f'    {s} = "{s}"\n'
         ClassRegistry().add_class(name, enum_class)
