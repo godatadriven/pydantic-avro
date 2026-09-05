@@ -338,7 +338,7 @@ def test_avro_write_complex():
 
 def test_defaults():
     # Pydantic v1 wrongly omit null type from optional field with non-None default
-    c3_type = ["null", "string"] if PYDANTIC_V2 else "string"
+    c3_type = ["string", "null"] if PYDANTIC_V2 else "string"
 
     result = DefaultValues.avro_schema()
     assert result == {
@@ -773,3 +773,41 @@ def test_unmapped_string_format_falls_back_to_string():
     assert field_types["ip"] == "string"
     # The produced schema must still be valid Avro.
     parse_schema(result)
+
+
+class OptionalWithNonNullDefault(AvroBase):
+    c1: Optional[int] = 0
+    c2: Optional[str] = "x"
+    c3: Optional[bool] = False
+    c4: Optional[float] = 1.5
+    c5: Optional[str] = None
+
+
+def test_optional_with_non_null_default_puts_matching_type_first():
+    """Regression for #161: Avro requires the default's type to be the first union branch,
+    so ``null`` may only lead the union when the default is ``None``."""
+    fields = {f["name"]: f for f in OptionalWithNonNullDefault.avro_schema()["fields"]}
+    if PYDANTIC_V2:
+        assert fields["c1"] == {"name": "c1", "type": ["long", "null"], "default": 0}
+        assert fields["c2"] == {"name": "c2", "type": ["string", "null"], "default": "x"}
+        assert fields["c3"] == {"name": "c3", "type": ["boolean", "null"], "default": False}
+        assert fields["c4"] == {"name": "c4", "type": ["double", "null"], "default": 1.5}
+    else:
+        # pydantic v1 drops ``null`` from Optional[...] fields that carry a default; unchanged behaviour
+        assert fields["c1"] == {"name": "c1", "type": "long", "default": 0}
+    assert fields["c5"] == {"name": "c5", "type": ["null", "string"], "default": None}
+
+
+class UnionWithNonNullDefault(AvroBase):
+    c1: Union[int, str, None] = "a"
+    c2: Union[None, int, str] = 3
+
+
+def test_union_with_non_null_default_promotes_matching_branch():
+    """Regression for #161: with several non-null branches the one matching the default leads,
+    and ``null`` goes last."""
+    if not PYDANTIC_V2:
+        return  # pydantic v1 emits no anyOf for Union fields
+    fields = {f["name"]: f for f in UnionWithNonNullDefault.avro_schema()["fields"]}
+    assert fields["c1"] == {"name": "c1", "type": ["string", "long", "null"], "default": "a"}
+    assert fields["c2"] == {"name": "c2", "type": ["long", "string", "null"], "default": 3}
