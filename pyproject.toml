@@ -19,13 +19,13 @@ pydantic = ">=1.4,<3.0"
 
 [tool.poetry.dev-dependencies]
 coverage = { version = "^7.17.0", extras = ["toml"] }
-pytest = "^9.0.3"
+pytest = "^9.2.0"
 pytest-mock = "^3.17.0"
 pyproject-flake8 = "^7.0.0"
 isort = "^9.0.2"
 black = "^26.10.1"
 pytest-cov = "^7.0.0"
-mypy = "^2.4.0"
+mypy = "^2.4.1"
 avro = "^1.12.2"
 fastavro = "^1.13.1"
 typing-extensions = "^4.16.0"
